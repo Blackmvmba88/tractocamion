@@ -59,7 +59,7 @@
                 <div class="control-body">
                     <div class="speed-display">
                         <div class="speedometer">
-                            <svg viewBox="0 0 200 120" class="speedometer-svg">
+                            <svg viewBox="0 0 200 120" class="speedometer-svg" role="img" aria-label="Velocímetro mostrando la velocidad actual del tractocamión">
                                 <path d="M 20 100 A 80 80 0 0 1 180 100" 
                                       stroke="#e0e0e0" 
                                       stroke-width="15" 
@@ -86,7 +86,7 @@
                                 <circle cx="100" cy="100" r="5" fill="#333"/>
                             </svg>
                             <div class="speed-value">
-                                <span id="speed-current">25</span>
+                                <span id="speed-current" aria-live="polite" aria-atomic="true">25</span>
                                 <span class="speed-unit">km/h</span>
                             </div>
                         </div>
@@ -122,7 +122,7 @@
                                 <div class="gauge-needle" id="weight-needle"></div>
                             </div>
                             <div class="weight-value">
-                                <span id="weight-current">18.5</span>
+                                <span id="weight-current" aria-live="polite" aria-atomic="true">18.5</span>
                                 <span class="weight-unit">Ton</span>
                             </div>
                         </div>
@@ -159,7 +159,7 @@
                         <div class="cargo-visualization">
                             <div class="cargo-container">
                                 <div class="cargo-fill" id="cargo-fill">
-                                    <span class="cargo-percentage" id="cargo-percentage">75%</span>
+                                    <span class="cargo-percentage" id="cargo-percentage" aria-live="polite" aria-atomic="true">75%</span>
                                 </div>
                             </div>
                             <div class="cargo-legend">

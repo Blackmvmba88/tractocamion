@@ -1,5 +1,15 @@
 // Ejemplos.js - Interactive examples for GPS, Speed, Weight, and Cargo controls
 
+// Threshold constants
+const WARNING_THRESHOLD = 70;
+const CRITICAL_THRESHOLD = 90;
+
+// DOM element cache
+let domElements = {};
+
+// Interval ID for cleanup
+let simulationIntervalId = null;
+
 // Simulation data
 let simulationData = {
     gps: {
@@ -30,8 +40,62 @@ let simulationData = {
 // Initialize the examples
 function init() {
     console.log('🚛 Tractocamión 4.0 - Ejemplos de Control Iniciados');
+    cacheDOMElements();
     updateAll();
     startSimulation();
+    
+    // Cleanup on page unload
+    window.addEventListener('beforeunload', cleanup);
+}
+
+// Cache DOM elements for better performance
+function cacheDOMElements() {
+    domElements = {
+        // GPS elements
+        truckMarker: document.getElementById('truck-marker'),
+        gpsLat: document.getElementById('gps-lat'),
+        gpsLng: document.getElementById('gps-lng'),
+        gpsLocation: document.getElementById('gps-location'),
+        
+        // Speed elements
+        speedCurrent: document.getElementById('speed-current'),
+        speedAvg: document.getElementById('speed-avg'),
+        speedStatus: document.getElementById('speed-status'),
+        speedNeedle: document.getElementById('speed-needle'),
+        speedArc: document.getElementById('speed-arc'),
+        
+        // Weight elements
+        weightCurrent: document.getElementById('weight-current'),
+        weightLoad: document.getElementById('weight-load'),
+        weightPercent: document.getElementById('weight-percent'),
+        weightFill: document.getElementById('weight-fill'),
+        weightNeedle: document.getElementById('weight-needle'),
+        
+        // Cargo elements
+        cargoFill: document.getElementById('cargo-fill'),
+        cargoPercentage: document.getElementById('cargo-percentage'),
+        cargoType: document.getElementById('cargo-type'),
+        cargoVolume: document.getElementById('cargo-volume'),
+        cargoDistribution: document.getElementById('cargo-distribution'),
+        cargoTime: document.getElementById('cargo-time'),
+        
+        // Integrated dashboard
+        miniGPS: document.getElementById('mini-gps'),
+        miniSpeed: document.getElementById('mini-speed'),
+        miniWeight: document.getElementById('mini-weight'),
+        miniCargo: document.getElementById('mini-cargo'),
+        
+        // Timestamp
+        lastUpdate: document.getElementById('last-update')
+    };
+}
+
+// Cleanup function
+function cleanup() {
+    if (simulationIntervalId) {
+        clearInterval(simulationIntervalId);
+        simulationIntervalId = null;
+    }
 }
 
 // Update all displays
@@ -46,32 +110,25 @@ function updateAll() {
 
 // Update GPS display
 function updateGPS() {
-    const marker = document.getElementById('truck-marker');
-    const lat = document.getElementById('gps-lat');
-    const lng = document.getElementById('gps-lng');
-    const location = document.getElementById('gps-location');
+    const { truckMarker, gpsLat, gpsLng, gpsLocation } = domElements;
 
-    if (marker && lat && lng && location) {
-        marker.style.left = `${simulationData.gps.markerX}%`;
-        marker.style.top = `${simulationData.gps.markerY}%`;
-        lat.textContent = simulationData.gps.lat.toFixed(4);
-        lng.textContent = simulationData.gps.lng.toFixed(4);
-        location.textContent = simulationData.gps.location;
+    if (truckMarker && gpsLat && gpsLng && gpsLocation) {
+        truckMarker.style.left = `${simulationData.gps.markerX}%`;
+        truckMarker.style.top = `${simulationData.gps.markerY}%`;
+        gpsLat.textContent = simulationData.gps.lat.toFixed(4);
+        gpsLng.textContent = simulationData.gps.lng.toFixed(4);
+        gpsLocation.textContent = simulationData.gps.location;
     }
 }
 
 // Update Speed display
 function updateSpeed() {
-    const currentSpeed = document.getElementById('speed-current');
-    const avgSpeed = document.getElementById('speed-avg');
-    const speedStatus = document.getElementById('speed-status');
-    const speedNeedle = document.getElementById('speed-needle');
-    const speedArc = document.getElementById('speed-arc');
+    const { speedCurrent, speedAvg, speedStatus, speedNeedle, speedArc } = domElements;
 
-    if (currentSpeed && avgSpeed && speedStatus && speedNeedle && speedArc) {
+    if (speedCurrent && speedAvg && speedStatus && speedNeedle && speedArc) {
         const speed = simulationData.speed.current;
-        currentSpeed.textContent = speed;
-        avgSpeed.textContent = `${simulationData.speed.average} km/h`;
+        speedCurrent.textContent = speed;
+        speedAvg.textContent = `${simulationData.speed.average} km/h`;
 
         // Update needle rotation (0 to 180 degrees for 0 to 80 km/h)
         const rotation = (speed / 80) * 180 - 90;
@@ -83,7 +140,7 @@ function updateSpeed() {
         speedArc.setAttribute('stroke-dashoffset', offset);
 
         // Update status based on speed
-        if (speed <= 30) {
+        if (speed < 30) {
             speedStatus.textContent = 'NORMAL';
             speedStatus.style.color = '#4CAF50';
         } else if (speed <= 35) {
@@ -98,22 +155,18 @@ function updateSpeed() {
 
 // Update Weight display
 function updateWeight() {
-    const currentWeight = document.getElementById('weight-current');
-    const loadWeight = document.getElementById('weight-load');
-    const percentWeight = document.getElementById('weight-percent');
-    const weightFill = document.getElementById('weight-fill');
-    const weightNeedle = document.getElementById('weight-needle');
+    const { weightCurrent, weightLoad, weightPercent, weightFill, weightNeedle } = domElements;
 
-    if (currentWeight && loadWeight && percentWeight && weightFill && weightNeedle) {
+    if (weightCurrent && weightLoad && weightPercent && weightFill && weightNeedle) {
         const weight = simulationData.weight.current;
         const maxWeight = simulationData.weight.max;
         const emptyWeight = simulationData.weight.empty;
         const load = weight - emptyWeight;
         const percentage = Math.round((weight / maxWeight) * 100);
 
-        currentWeight.textContent = weight.toFixed(1);
-        loadWeight.textContent = `${load.toFixed(1)} Ton`;
-        percentWeight.textContent = `${percentage}%`;
+        weightCurrent.textContent = weight.toFixed(1);
+        weightLoad.textContent = `${load.toFixed(1)} Ton`;
+        weightPercent.textContent = `${percentage}%`;
 
         // Update gauge fill
         weightFill.style.height = `${percentage}%`;
@@ -122,15 +175,15 @@ function updateWeight() {
         const needleRotation = (percentage / 100) * 180 - 90;
         weightNeedle.style.transform = `translateX(-50%) rotate(${needleRotation}deg)`;
 
-        // Update color based on percentage
-        if (percentage < 70) {
-            percentWeight.style.color = '#4CAF50';
+        // Update color based on percentage using thresholds
+        if (percentage < WARNING_THRESHOLD) {
+            weightPercent.style.color = '#4CAF50';
             weightFill.style.background = 'linear-gradient(180deg, #4CAF50 0%, #8BC34A 100%)';
-        } else if (percentage < 90) {
-            percentWeight.style.color = '#FF9800';
+        } else if (percentage < CRITICAL_THRESHOLD) {
+            weightPercent.style.color = '#FF9800';
             weightFill.style.background = 'linear-gradient(180deg, #FF9800 0%, #FFB74D 100%)';
         } else {
-            percentWeight.style.color = '#f44336';
+            weightPercent.style.color = '#f44336';
             weightFill.style.background = 'linear-gradient(180deg, #f44336 0%, #EF5350 100%)';
         }
     }
@@ -138,12 +191,7 @@ function updateWeight() {
 
 // Update Cargo display
 function updateCargo() {
-    const cargoFill = document.getElementById('cargo-fill');
-    const cargoPercentage = document.getElementById('cargo-percentage');
-    const cargoType = document.getElementById('cargo-type');
-    const cargoVolume = document.getElementById('cargo-volume');
-    const cargoDistribution = document.getElementById('cargo-distribution');
-    const cargoTime = document.getElementById('cargo-time');
+    const { cargoFill, cargoPercentage, cargoType, cargoVolume, cargoDistribution, cargoTime } = domElements;
 
     if (cargoFill && cargoPercentage && cargoType && cargoVolume && cargoDistribution && cargoTime) {
         const percentage = simulationData.cargo.percentage;
@@ -154,12 +202,12 @@ function updateCargo() {
         cargoVolume.textContent = `${simulationData.cargo.volume} m³`;
         cargoTime.textContent = `${simulationData.cargo.loadTime} min`;
 
-        // Update cargo fill color based on percentage
-        if (percentage < 70) {
+        // Update cargo fill color based on percentage using thresholds
+        if (percentage < WARNING_THRESHOLD) {
             cargoFill.style.background = 'linear-gradient(180deg, #4CAF50 0%, #66BB6A 100%)';
             cargoDistribution.textContent = 'BALANCEADO';
             cargoDistribution.style.color = '#4CAF50';
-        } else if (percentage < 90) {
+        } else if (percentage < CRITICAL_THRESHOLD) {
             cargoFill.style.background = 'linear-gradient(180deg, #FF9800 0%, #FFB74D 100%)';
             cargoDistribution.textContent = 'CERCA DEL LÍMITE';
             cargoDistribution.style.color = '#FF9800';
@@ -173,10 +221,7 @@ function updateCargo() {
 
 // Update integrated dashboard
 function updateIntegratedDashboard() {
-    const miniGPS = document.getElementById('mini-gps');
-    const miniSpeed = document.getElementById('mini-speed');
-    const miniWeight = document.getElementById('mini-weight');
-    const miniCargo = document.getElementById('mini-cargo');
+    const { miniGPS, miniSpeed, miniWeight, miniCargo } = domElements;
 
     if (miniGPS && miniSpeed && miniWeight && miniCargo) {
         miniGPS.textContent = simulationData.gps.location.split(' - ')[0];
@@ -188,7 +233,7 @@ function updateIntegratedDashboard() {
 
 // Update timestamp
 function updateTimestamp() {
-    const lastUpdate = document.getElementById('last-update');
+    const { lastUpdate } = domElements;
     if (lastUpdate) {
         const now = new Date();
         lastUpdate.textContent = `Última actualización: ${now.toLocaleTimeString()}`;
@@ -197,7 +242,7 @@ function updateTimestamp() {
 
 // Start simulation with random variations
 function startSimulation() {
-    setInterval(() => {
+    simulationIntervalId = setInterval(() => {
         // Simulate GPS movement
         simulationData.gps.markerX += (Math.random() - 0.5) * 5;
         simulationData.gps.markerY += (Math.random() - 0.5) * 5;
@@ -231,10 +276,14 @@ function startSimulation() {
         const cargoChange = Math.floor((Math.random() - 0.5) * 3);
         simulationData.cargo.percentage = Math.max(0, Math.min(100, simulationData.cargo.percentage + cargoChange));
         
-        // Update load time
-        simulationData.cargo.loadTime += 1;
-        if (simulationData.cargo.percentage >= 95) {
-            simulationData.cargo.loadTime = 0;
+        // Update load time (increases as cargo loads)
+        if (simulationData.cargo.percentage < 95) {
+            simulationData.cargo.loadTime += 1;
+        } else {
+            // Reset when unloading starts (cargo drops below threshold)
+            if (cargoChange < 0 && simulationData.cargo.percentage < WARNING_THRESHOLD) {
+                simulationData.cargo.loadTime = 0;
+            }
         }
 
         // Change location based on position
