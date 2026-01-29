@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚛 Ejemplos de Control - Tractocamión 4.0</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/ejemplos-styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚛 Tractocamión 4.0 - Ejemplos de Control</h1>
+            <p class="subtitle">GPS, Velocidad, Peso y Carga en Tiempo Real</p>
+            <a href="/" class="btn-back">← Volver al Dashboard</a>
+        </header>
+
+        <div class="examples-grid">
+            <!-- GPS Control Example -->
+            <div class="control-card gps-card">
+                <div class="control-header">
+                    <h2>📍 Control GPS</h2>
+                    <span class="status-badge status-active">ACTIVO</span>
+                </div>
+                <div class="control-body">
+                    <div class="gps-display">
+                        <div class="gps-map">
+                            <div class="truck-marker" id="truck-marker">🚛</div>
+                            <div class="route-line" id="route-line"></div>
+                        </div>
+                        <div class="gps-info">
+                            <div class="info-row">
+                                <span class="info-label">Latitud:</span>
+                                <span class="info-value" id="gps-lat">19.4326</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Longitud:</span>
+                                <span class="info-value" id="gps-lng">-99.1332</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Ubicación:</span>
+                                <span class="info-value" id="gps-location">Patio A - Zona de Carga</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Precisión GPS:</span>
+                                <span class="info-value gps-precision">±3m</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Speed Control Example -->
+            <div class="control-card speed-card">
+                <div class="control-header">
+                    <h2>⚡ Control de Velocidad</h2>
+                    <span class="status-badge status-active">MONITOREANDO</span>
+                </div>
+                <div class="control-body">
+                    <div class="speed-display">
+                        <div class="speedometer">
+                            <svg viewBox="0 0 200 120" class="speedometer-svg" role="img" aria-label="Velocímetro mostrando la velocidad actual del tractocamión">
+                                <path d="M 20 100 A 80 80 0 0 1 180 100" 
+                                      stroke="#e0e0e0" 
+                                      stroke-width="15" 
+                                      fill="none"/>
+                                <path d="M 20 100 A 80 80 0 0 1 180 100" 
+                                      stroke="url(#speedGradient)" 
+                                      stroke-width="15" 
+                                      fill="none"
+                                      stroke-dasharray="251.2"
+                                      stroke-dashoffset="0"
+                                      id="speed-arc"/>
+                                <defs>
+                                    <linearGradient id="speedGradient">
+                                        <stop offset="0%" stop-color="#4CAF50"/>
+                                        <stop offset="50%" stop-color="#FF9800"/>
+                                        <stop offset="100%" stop-color="#f44336"/>
+                                    </linearGradient>
+                                </defs>
+                                <line x1="100" y1="100" x2="100" y2="40" 
+                                      stroke="#333" 
+                                      stroke-width="3" 
+                                      id="speed-needle"
+                                      transform="rotate(0 100 100)"/>
+                                <circle cx="100" cy="100" r="5" fill="#333"/>
+                            </svg>
+                            <div class="speed-value">
+                                <span id="speed-current" aria-live="polite" aria-atomic="true">25</span>
+                                <span class="speed-unit">km/h</span>
+                            </div>
+                        </div>
+                        <div class="speed-info">
+                            <div class="info-row">
+                                <span class="info-label">Velocidad Max:</span>
+                                <span class="info-value">40 km/h</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Velocidad Promedio:</span>
+                                <span class="info-value" id="speed-avg">22 km/h</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Estado:</span>
+                                <span class="info-value speed-status" id="speed-status">NORMAL</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Weight Control Example -->
+            <div class="control-card weight-card">
+                <div class="control-header">
+                    <h2>⚖️ Control de Peso</h2>
+                    <span class="status-badge status-active">MEDICIÓN ACTIVA</span>
+                </div>
+                <div class="control-body">
+                    <div class="weight-display">
+                        <div class="weight-gauge">
+                            <div class="gauge-container">
+                                <div class="gauge-fill" id="weight-fill"></div>
+                                <div class="gauge-needle" id="weight-needle"></div>
+                            </div>
+                            <div class="weight-value">
+                                <span id="weight-current" aria-live="polite" aria-atomic="true">18.5</span>
+                                <span class="weight-unit">Ton</span>
+                            </div>
+                        </div>
+                        <div class="weight-info">
+                            <div class="info-row">
+                                <span class="info-label">Peso Máximo:</span>
+                                <span class="info-value">25.0 Ton</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Peso Vacío:</span>
+                                <span class="info-value">7.5 Ton</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Carga Actual:</span>
+                                <span class="info-value" id="weight-load">11.0 Ton</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Capacidad Utilizada:</span>
+                                <span class="info-value weight-percentage" id="weight-percent">74%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Load/Cargo Control Example -->
+            <div class="control-card cargo-card">
+                <div class="control-header">
+                    <h2>📦 Control de Carga</h2>
+                    <span class="status-badge status-active">CARGANDO</span>
+                </div>
+                <div class="control-body">
+                    <div class="cargo-display">
+                        <div class="cargo-visualization">
+                            <div class="cargo-container">
+                                <div class="cargo-fill" id="cargo-fill">
+                                    <span class="cargo-percentage" id="cargo-percentage" aria-live="polite" aria-atomic="true">75%</span>
+                                </div>
+                            </div>
+                            <div class="cargo-legend">
+                                <span class="legend-item">
+                                    <span class="legend-color" style="background: #4CAF50;"></span>
+                                    Carga Óptima
+                                </span>
+                                <span class="legend-item">
+                                    <span class="legend-color" style="background: #FF9800;"></span>
+                                    Cerca del Límite
+                                </span>
+                                <span class="legend-item">
+                                    <span class="legend-color" style="background: #f44336;"></span>
+                                    Sobrecarga
+                                </span>
+                            </div>
+                        </div>
+                        <div class="cargo-info">
+                            <div class="info-row">
+                                <span class="info-label">Tipo de Carga:</span>
+                                <span class="info-value" id="cargo-type">Contenedores</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Volumen:</span>
+                                <span class="info-value" id="cargo-volume">45 m³</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Estado de Distribución:</span>
+                                <span class="info-value cargo-distribution" id="cargo-distribution">BALANCEADO</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Tiempo de Carga:</span>
+                                <span class="info-value" id="cargo-time">15 min</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Combined Dashboard Example -->
+        <div class="section">
+            <h2>📊 Panel de Control Integrado</h2>
+            <div class="integrated-dashboard">
+                <div class="dashboard-row">
+                    <div class="mini-card">
+                        <div class="mini-icon">📍</div>
+                        <div class="mini-content">
+                            <div class="mini-label">GPS</div>
+                            <div class="mini-value" id="mini-gps">Patio A</div>
+                        </div>
+                    </div>
+                    <div class="mini-card">
+                        <div class="mini-icon">⚡</div>
+                        <div class="mini-content">
+                            <div class="mini-label">Velocidad</div>
+                            <div class="mini-value" id="mini-speed">25 km/h</div>
+                        </div>
+                    </div>
+                    <div class="mini-card">
+                        <div class="mini-icon">⚖️</div>
+                        <div class="mini-content">
+                            <div class="mini-label">Peso</div>
+                            <div class="mini-value" id="mini-weight">18.5 Ton</div>
+                        </div>
+                    </div>
+                    <div class="mini-card">
+                        <div class="mini-icon">📦</div>
+                        <div class="mini-content">
+                            <div class="mini-label">Carga</div>
+                            <div class="mini-value" id="mini-cargo">75%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section auto-update">
+            <p>🔄 Datos simulados actualizándose en tiempo real</p>
+            <p id="last-update"></p>
+        </div>
+    </div>
+
+    <script src="/ejemplos.js"></script>
+</body>
+</html>
