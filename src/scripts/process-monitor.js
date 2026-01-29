@@ -12,7 +12,7 @@ const { exec } = require('child_process');
 class ProcessMonitor {
     constructor() {
         this.platform = process.platform;
-        this.interval = 30000; // 30 seconds
+        this.interval = process.env.MONITOR_INTERVAL || 30000; // Configurable interval
         this.processes = [];
     }
 
@@ -45,6 +45,14 @@ class ProcessMonitor {
         }
 
         exec(cmd, (error, stdout, stderr) => {
+            // Only check stdout if there's no critical error
+            if (error && error.code !== 1) {
+                // Code 1 just means no match found, which is ok
+                console.error('Error checking process:', error.message);
+                callback(false);
+                return;
+            }
+            
             const isRunning = stdout.includes(processName);
             callback(isRunning);
         });

@@ -17,6 +17,9 @@ async function updatePlatformInfo() {
 async function updateProcesses() {
     try {
         const response = await fetch(`${API_BASE}/processes`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         const tableBody = document.getElementById('processes-table');
         
@@ -31,6 +34,7 @@ async function updateProcesses() {
         `).join('');
     } catch (error) {
         console.error('Error fetching processes:', error);
+        showError('Error al cargar procesos');
     }
 }
 
@@ -38,6 +42,9 @@ async function updateProcesses() {
 async function updateTrucks() {
     try {
         const response = await fetch(`${API_BASE}/trucks`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         const tableBody = document.getElementById('trucks-table');
         
@@ -56,6 +63,7 @@ async function updateTrucks() {
         `).join('');
     } catch (error) {
         console.error('Error fetching trucks:', error);
+        showError('Error al cargar tractores');
     }
 }
 
@@ -63,6 +71,9 @@ async function updateTrucks() {
 async function updateOperators() {
     try {
         const response = await fetch(`${API_BASE}/operators`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
         const tableBody = document.getElementById('operators-table');
         
@@ -82,6 +93,7 @@ async function updateOperators() {
         `).join('');
     } catch (error) {
         console.error('Error fetching operators:', error);
+        showError('Error al cargar operadores');
     }
 }
 
@@ -89,7 +101,17 @@ async function updateOperators() {
 function updateTimestamp() {
     const lastUpdate = document.getElementById('last-update');
     const now = new Date();
-    lastUpdate.textContent = `Última actualización: ${now.toLocaleTimeString('es-ES')}`;
+    lastUpdate.textContent = `Última actualización: ${now.toLocaleTimeString()}`;
+}
+
+// Show error message
+function showError(message) {
+    const lastUpdate = document.getElementById('last-update');
+    lastUpdate.textContent = `⚠️ ${message}`;
+    lastUpdate.style.color = '#f44336';
+    setTimeout(() => {
+        lastUpdate.style.color = '';
+    }, 3000);
 }
 
 // Update all data

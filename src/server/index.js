@@ -37,25 +37,36 @@ apiRouter.get('/processes', (req, res) => {
 
 // Truck status endpoint
 apiRouter.get('/trucks', (req, res) => {
+  const trucks = getTruckStatus();
   res.json({
-    trucks: getTruckStatus(),
-    total: getTruckStatus().length,
-    active: getTruckStatus().filter(t => t.status === 'active').length
+    trucks: trucks,
+    total: trucks.length,
+    active: trucks.filter(t => t.status === 'active').length
   });
 });
 
 // Operators endpoint
 apiRouter.get('/operators', (req, res) => {
+  const operators = getOperatorStatus();
   res.json({
-    operators: getOperatorStatus(),
-    total: getOperatorStatus().length,
-    available: getOperatorStatus().filter(o => o.status === 'available').length
+    operators: operators,
+    total: operators.length,
+    available: operators.filter(o => o.status === 'available').length
   });
 });
 
 // Cycle tracking endpoint
 apiRouter.post('/cycles', (req, res) => {
   const cycle = req.body;
+  
+  // Basic validation
+  if (!cycle.truck_id || !cycle.operator_id) {
+    return res.status(400).json({
+      success: false,
+      error: 'truck_id and operator_id are required'
+    });
+  }
+  
   res.json({
     success: true,
     cycle: {
@@ -103,11 +114,14 @@ function getOperatorStatus() {
 }
 
 function generateId() {
-  return 'CYC-' + Date.now().toString(36).toUpperCase();
+  // Add random component to reduce collision risk
+  const timestamp = Date.now().toString(36).toUpperCase();
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return 'CYC-' + timestamp + '-' + random;
 }
 
 // Start server
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log('🚛 Tractocamión 4.0 - Sistema de Gestión Logística');
   console.log('='.repeat(50));
   console.log(`✅ Servidor iniciado en puerto ${PORT}`);
@@ -115,6 +129,14 @@ app.listen(PORT, () => {
   console.log(`📡 API disponible en: http://localhost:${PORT}/api`);
   console.log(`🖥️  Dashboard en: http://localhost:${PORT}`);
   console.log('='.repeat(50));
+}).on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Error: Puerto ${PORT} ya está en uso`);
+    console.error(`💡 Intenta con un puerto diferente: PORT=8080 npm start`);
+  } else {
+    console.error('❌ Error al iniciar el servidor:', err.message);
+  }
+  process.exit(1);
 });
 
-module.exports = app;
+module.exports = { app, server };
