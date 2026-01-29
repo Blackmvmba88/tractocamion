@@ -1,0 +1,567 @@
+/* ========================================
+   THEME STYLES FOR TRACTOCAMIÓN 4.0
+   ======================================== */
+
+/* Theme switcher component */
+.theme-switcher {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin: 15px 0;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.theme-label {
+    font-weight: 600;
+    color: #666;
+    margin-right: 5px;
+}
+
+.theme-btn {
+    padding: 8px 16px;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: #f0f0f0;
+    color: #333;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    font-size: 0.9em;
+}
+
+.theme-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.theme-btn.active {
+    border-color: currentColor;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.theme-btn.blackops {
+    background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+    color: #00ff00;
+}
+
+.theme-btn.nena {
+    background: linear-gradient(135deg, #ff6b9d 0%, #c06c84 100%);
+    color: white;
+}
+
+.theme-btn.infantil {
+    background: linear-gradient(135deg, #ffcc00 0%, #ff6b6b 100%);
+    color: white;
+}
+
+/* ========================================
+   THEME: BLACKOPS (Military/Tactical)
+   ======================================== */
+
+body.theme-blackops {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+}
+
+.theme-blackops .container {
+    background: #1a1a1a;
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 40px rgba(0, 255, 0, 0.3);
+}
+
+.theme-blackops header {
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+    border-bottom: 3px solid #00ff00;
+}
+
+.theme-blackops h1 {
+    color: #00ff00;
+    text-shadow: 0 0 20px rgba(0, 255, 0, 0.7);
+    font-family: 'Courier New', monospace;
+}
+
+.theme-blackops .subtitle {
+    color: #00ff00;
+    opacity: 0.8;
+    font-family: 'Courier New', monospace;
+}
+
+.theme-blackops .stat-card {
+    background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+}
+
+.theme-blackops .stat-card h3,
+.theme-blackops .stat-value,
+.theme-blackops .stat-label {
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+}
+
+.theme-blackops .section h2 {
+    color: #00ff00;
+    font-family: 'Courier New', monospace;
+    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+}
+
+.theme-blackops table {
+    background: #0f0f0f;
+    border: 1px solid #00ff00;
+}
+
+.theme-blackops thead {
+    background: #1a1a1a;
+    border-bottom: 2px solid #00ff00;
+}
+
+.theme-blackops th,
+.theme-blackops td {
+    color: #00ff00;
+    border-bottom: 1px solid #00ff0033;
+}
+
+.theme-blackops tbody tr:hover {
+    background: #0a0a0a;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+}
+
+.theme-blackops .auto-update {
+    background: #0f0f0f;
+    border: 1px solid #00ff00;
+    color: #00ff00;
+}
+
+.theme-blackops .btn-ejemplos,
+.theme-blackops .btn-back {
+    background: #1a1a1a;
+    border: 2px solid #00ff00;
+    color: #00ff00;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+}
+
+.theme-blackops .btn-ejemplos:hover,
+.theme-blackops .btn-back:hover {
+    background: #0f0f0f;
+    box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+}
+
+.theme-blackops .control-header {
+    background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
+    border-bottom: 2px solid #00ff00;
+}
+
+.theme-blackops .control-header h2 {
+    color: #00ff00;
+}
+
+.theme-blackops .control-card {
+    background: #1a1a1a;
+    border: 2px solid #00ff00;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+}
+
+.theme-blackops .info-row {
+    background: #0f0f0f;
+    border: 1px solid #00ff0033;
+}
+
+.theme-blackops .info-label,
+.theme-blackops .info-value {
+    color: #00ff00;
+}
+
+.theme-blackops .gps-map {
+    background: linear-gradient(135deg, #0a1a0a 0%, #0f1f0f 100%);
+    border-color: #00ff00;
+}
+
+.theme-blackops .mini-card {
+    background: #1a1a1a;
+    border: 1px solid #00ff00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+}
+
+.theme-blackops .mini-label,
+.theme-blackops .mini-value {
+    color: #00ff00;
+}
+
+.theme-blackops .integrated-dashboard {
+    background: #0f0f0f;
+    border: 1px solid #00ff00;
+}
+
+/* ========================================
+   THEME: NENA/REYNA (Elegant/Feminine)
+   ======================================== */
+
+body.theme-nena {
+    background: linear-gradient(135deg, #ffeef8 0%, #ffe3f0 100%);
+}
+
+.theme-nena .container {
+    background: linear-gradient(to bottom, #ffffff 0%, #fff5fb 100%);
+    border: 3px solid #ff6b9d;
+    box-shadow: 0 20px 60px rgba(255, 107, 157, 0.3);
+}
+
+.theme-nena header {
+    background: linear-gradient(135deg, #ff6b9d 0%, #c06c84 100%);
+    border-bottom: 3px solid #ff1493;
+}
+
+.theme-nena h1 {
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+    font-family: 'Georgia', serif;
+}
+
+.theme-nena .subtitle {
+    color: white;
+    font-family: 'Georgia', serif;
+}
+
+.theme-nena .stat-card {
+    background: linear-gradient(135deg, #ff6b9d 0%, #ff8fab 100%);
+    border: 2px solid #ff1493;
+    box-shadow: 0 6px 20px rgba(255, 107, 157, 0.3);
+}
+
+.theme-nena .stat-card h3,
+.theme-nena .stat-value,
+.theme-nena .stat-label {
+    color: white;
+}
+
+.theme-nena .section h2 {
+    color: #c06c84;
+    font-family: 'Georgia', serif;
+}
+
+.theme-nena table {
+    background: white;
+    border: 2px solid #ffb3d9;
+}
+
+.theme-nena thead {
+    background: linear-gradient(135deg, #ff6b9d 0%, #c06c84 100%);
+}
+
+.theme-nena th {
+    color: white;
+}
+
+.theme-nena td {
+    color: #7d3c4d;
+    border-bottom: 1px solid #ffcceb;
+}
+
+.theme-nena tbody tr:hover {
+    background: #fff5fb;
+}
+
+.theme-nena .auto-update {
+    background: linear-gradient(135deg, #fff5fb 0%, #ffe3f0 100%);
+    border: 2px solid #ffb3d9;
+    color: #7d3c4d;
+}
+
+.theme-nena .btn-ejemplos,
+.theme-nena .btn-back {
+    background: linear-gradient(135deg, #ff6b9d 0%, #c06c84 100%);
+    color: white;
+    border: 2px solid #ff1493;
+    box-shadow: 0 4px 15px rgba(255, 107, 157, 0.4);
+}
+
+.theme-nena .btn-ejemplos:hover,
+.theme-nena .btn-back:hover {
+    background: linear-gradient(135deg, #ff8fab 0%, #d07b92 100%);
+    box-shadow: 0 6px 20px rgba(255, 107, 157, 0.5);
+}
+
+.theme-nena .control-header {
+    background: linear-gradient(135deg, #ff6b9d 0%, #c06c84 100%);
+    border-bottom: 2px solid #ff1493;
+}
+
+.theme-nena .control-card {
+    background: white;
+    border: 2px solid #ffb3d9;
+    box-shadow: 0 4px 20px rgba(255, 107, 157, 0.2);
+}
+
+.theme-nena .info-row {
+    background: #fff5fb;
+    border: 1px solid #ffcceb;
+}
+
+.theme-nena .info-label {
+    color: #7d3c4d;
+}
+
+.theme-nena .info-value {
+    color: #c06c84;
+}
+
+.theme-nena .gps-map {
+    background: linear-gradient(135deg, #fff5fb 0%, #ffe3f0 100%);
+    border-color: #ff6b9d;
+}
+
+.theme-nena .mini-card {
+    background: white;
+    border: 2px solid #ffb3d9;
+    box-shadow: 0 2px 15px rgba(255, 107, 157, 0.2);
+}
+
+.theme-nena .mini-label {
+    color: #7d3c4d;
+}
+
+.theme-nena .mini-value {
+    color: #c06c84;
+}
+
+.theme-nena .integrated-dashboard {
+    background: linear-gradient(135deg, #fff5fb 0%, #ffe3f0 100%);
+    border: 2px solid #ffb3d9;
+}
+
+/* ========================================
+   THEME: INFANTIL (Child-Friendly/Playful)
+   ======================================== */
+
+body.theme-infantil {
+    background: linear-gradient(135deg, #ffeb3b 0%, #ffc107 50%, #ff9800 100%);
+}
+
+.theme-infantil .container {
+    background: white;
+    border: 5px solid #ff6b6b;
+    border-radius: 30px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.theme-infantil header {
+    background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    border-bottom: 5px solid #ff6b6b;
+    border-radius: 25px 25px 0 0;
+}
+
+.theme-infantil h1 {
+    color: white;
+    text-shadow: 3px 3px 0px #ff6b6b;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-size: 2.8em;
+}
+
+.theme-infantil .subtitle {
+    color: white;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-size: 1.3em;
+}
+
+.theme-infantil .stat-card {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a6f 100%);
+    border: 4px solid #ffeb3b;
+    border-radius: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+    transform: rotate(-1deg);
+}
+
+.theme-infantil .stat-card:nth-child(even) {
+    transform: rotate(1deg);
+}
+
+.theme-infantil .stat-card:hover {
+    transform: rotate(0deg) translateY(-5px) scale(1.05);
+}
+
+.theme-infantil .stat-card h3,
+.theme-infantil .stat-value,
+.theme-infantil .stat-label {
+    color: white;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.theme-infantil .section h2 {
+    color: #ff6b6b;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    font-size: 2em;
+    text-shadow: 2px 2px 0px #ffeb3b;
+}
+
+.theme-infantil table {
+    background: white;
+    border: 3px solid #4ecdc4;
+    border-radius: 15px;
+}
+
+.theme-infantil thead {
+    background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+}
+
+.theme-infantil th {
+    color: white;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.theme-infantil td {
+    color: #333;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    border-bottom: 2px solid #ffe57f;
+}
+
+.theme-infantil tbody tr:hover {
+    background: #fff9c4;
+    transform: scale(1.02);
+}
+
+.theme-infantil .auto-update {
+    background: linear-gradient(135deg, #fff9c4 0%, #ffe57f 100%);
+    border: 3px solid #ff6b6b;
+    border-radius: 20px;
+    color: #333;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.theme-infantil .btn-ejemplos,
+.theme-infantil .btn-back {
+    background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    color: white;
+    border: 3px solid #ff6b6b;
+    border-radius: 25px;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    box-shadow: 0 4px 15px rgba(78, 205, 196, 0.4);
+    font-size: 1.1em;
+}
+
+.theme-infantil .btn-ejemplos:hover,
+.theme-infantil .btn-back:hover {
+    background: linear-gradient(135deg, #44a08d 0%, #3a8f7e 100%);
+    box-shadow: 0 6px 20px rgba(78, 205, 196, 0.5);
+    transform: translateY(-3px) scale(1.05);
+}
+
+.theme-infantil .control-header {
+    background: linear-gradient(135deg, #4ecdc4 0%, #44a08d 100%);
+    border-bottom: 4px solid #ff6b6b;
+}
+
+.theme-infantil .control-header h2 {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.theme-infantil .control-card {
+    background: white;
+    border: 4px solid #4ecdc4;
+    border-radius: 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
+}
+
+.theme-infantil .info-row {
+    background: #fff9c4;
+    border: 2px solid #ffe57f;
+    border-radius: 12px;
+}
+
+.theme-infantil .info-label {
+    color: #666;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.theme-infantil .info-value {
+    color: #ff6b6b;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.theme-infantil .gps-map {
+    background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+    border: 3px solid #4ecdc4;
+    border-radius: 15px;
+}
+
+.theme-infantil .mini-card {
+    background: white;
+    border: 3px solid #4ecdc4;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.theme-infantil .mini-label {
+    color: #666;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.theme-infantil .mini-value {
+    color: #ff6b6b;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.theme-infantil .integrated-dashboard {
+    background: linear-gradient(135deg, #fff9c4 0%, #ffe57f 100%);
+    border: 3px solid #ff6b6b;
+    border-radius: 20px;
+}
+
+/* Enhanced truck animations for all themes */
+.truck-marker {
+    animation: truckBounce 2s ease-in-out infinite;
+}
+
+@keyframes truckBounce {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-5px) scale(1.05); }
+}
+
+.theme-blackops .truck-marker {
+    filter: drop-shadow(0 0 10px #00ff00);
+    animation: truckBounceGreen 2s ease-in-out infinite;
+}
+
+@keyframes truckBounceGreen {
+    0%, 100% { 
+        transform: translateY(0) scale(1);
+        filter: drop-shadow(0 0 10px #00ff00);
+    }
+    50% { 
+        transform: translateY(-5px) scale(1.05);
+        filter: drop-shadow(0 0 20px #00ff00);
+    }
+}
+
+.theme-nena .truck-marker {
+    filter: drop-shadow(0 0 8px #ff6b9d);
+}
+
+.theme-infantil .truck-marker {
+    filter: drop-shadow(0 0 8px #ffeb3b);
+    animation: truckWiggle 2s ease-in-out infinite;
+}
+
+@keyframes truckWiggle {
+    0%, 100% { transform: rotate(-2deg) scale(1); }
+    25% { transform: rotate(2deg) scale(1.05); }
+    50% { transform: rotate(-2deg) scale(1.1); }
+    75% { transform: rotate(2deg) scale(1.05); }
+}
+
+/* Smooth theme transitions */
+body,
+.container,
+header,
+.stat-card,
+.section h2,
+table,
+thead,
+td,
+.control-card,
+.control-header,
+.info-row,
+.mini-card,
+.btn-ejemplos,
+.btn-back {
+    transition: all 0.5s ease;
+}
