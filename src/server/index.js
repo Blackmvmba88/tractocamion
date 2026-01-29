@@ -7,6 +7,8 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
+// NOTE: For production, add rate limiting middleware here (see SECURITY.md)
+// and configure CORS with specific allowed origins
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
