@@ -1,0 +1,27 @@
+{
+  "name": "tractocamion-web",
+  "version": "4.0.0",
+  "description": "Sistema Integral de Gestión Logística - Cross-platform Web Application",
+  "main": "src/server/index.js",
+  "scripts": {
+    "start": "node src/server/index.js",
+    "dev": "node src/server/index.js",
+    "monitor": "node src/scripts/process-monitor.js"
+  },
+  "keywords": [
+    "logistics",
+    "tractocamion",
+    "fleet-management",
+    "cross-platform"
+  ],
+  "author": "Tractocamión Team",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "body-parser": "^1.20.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
