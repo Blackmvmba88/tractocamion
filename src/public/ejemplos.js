@@ -7,8 +7,9 @@ const CRITICAL_THRESHOLD = 90;
 // DOM element cache
 let domElements = {};
 
-// Interval ID for cleanup
+// Interval IDs for cleanup
 let simulationIntervalId = null;
+let routeAnimationIntervalId = null;
 
 // Simulation data
 let simulationData = {
@@ -95,6 +96,10 @@ function cleanup() {
     if (simulationIntervalId) {
         clearInterval(simulationIntervalId);
         simulationIntervalId = null;
+    }
+    if (routeAnimationIntervalId) {
+        clearInterval(routeAnimationIntervalId);
+        routeAnimationIntervalId = null;
     }
 }
 
@@ -311,9 +316,9 @@ function animateRoute() {
     const routeLine = document.getElementById('route-line');
     if (!routeLine) return;
     
-    let routeProgress = 0;
+    let animationPhase = 0;
     
-    setInterval(() => {
+    routeAnimationIntervalId = setInterval(() => {
         const truckMarker = domElements.truckMarker;
         if (!truckMarker) return;
         
@@ -325,10 +330,11 @@ function animateRoute() {
         routeLine.style.top = `${truckY}%`;
         routeLine.style.width = '30%';
         
-        // Add pulsing effect to route
-        routeProgress = (routeProgress + 2) % 100;
-        routeLine.style.opacity = 0.3 + Math.sin(routeProgress / 10) * 0.2;
-    }, 100);
+        // Add pulsing effect to route (opacity clamped between 0.3 and 0.5)
+        animationPhase = (animationPhase + 2) % 100;
+        const pulseValue = Math.abs(Math.sin(animationPhase / 10)) * 0.2;
+        routeLine.style.opacity = 0.3 + pulseValue;
+    }, 200);
 }
 
 // Start when DOM is ready

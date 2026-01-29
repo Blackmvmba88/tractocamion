@@ -65,131 +65,131 @@ body.theme-blackops {
 
 .theme-blackops .container {
     background: #1a1a1a;
-    border: 2px solid #00ff00;
-    box-shadow: 0 0 40px rgba(0, 255, 0, 0.3);
+    border: 2px solid #00dd00;
+    box-shadow: 0 0 40px rgba(0, 221, 0, 0.3);
 }
 
 .theme-blackops header {
     background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
-    border-bottom: 3px solid #00ff00;
+    border-bottom: 3px solid #00dd00;
 }
 
 .theme-blackops h1 {
-    color: #00ff00;
-    text-shadow: 0 0 20px rgba(0, 255, 0, 0.7);
+    color: #00dd00;
+    text-shadow: 0 0 20px rgba(0, 221, 0, 0.7);
     font-family: 'Courier New', monospace;
 }
 
 .theme-blackops .subtitle {
-    color: #00ff00;
+    color: #00dd00;
     opacity: 0.8;
     font-family: 'Courier New', monospace;
 }
 
 .theme-blackops .stat-card {
     background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
-    border: 2px solid #00ff00;
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+    border: 2px solid #00dd00;
+    box-shadow: 0 0 20px rgba(0, 221, 0, 0.2);
 }
 
 .theme-blackops .stat-card h3,
 .theme-blackops .stat-value,
 .theme-blackops .stat-label {
-    color: #00ff00;
+    color: #00dd00;
     font-family: 'Courier New', monospace;
 }
 
 .theme-blackops .section h2 {
-    color: #00ff00;
+    color: #00dd00;
     font-family: 'Courier New', monospace;
-    text-shadow: 0 0 10px rgba(0, 255, 0, 0.5);
+    text-shadow: 0 0 10px rgba(0, 221, 0, 0.5);
 }
 
 .theme-blackops table {
     background: #0f0f0f;
-    border: 1px solid #00ff00;
+    border: 1px solid #00dd00;
 }
 
 .theme-blackops thead {
     background: #1a1a1a;
-    border-bottom: 2px solid #00ff00;
+    border-bottom: 2px solid #00dd00;
 }
 
 .theme-blackops th,
 .theme-blackops td {
-    color: #00ff00;
-    border-bottom: 1px solid #00ff0033;
+    color: #00dd00;
+    border-bottom: 1px solid #00dd0033;
 }
 
 .theme-blackops tbody tr:hover {
     background: #0a0a0a;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+    box-shadow: 0 0 15px rgba(0, 221, 0, 0.2);
 }
 
 .theme-blackops .auto-update {
     background: #0f0f0f;
-    border: 1px solid #00ff00;
-    color: #00ff00;
+    border: 1px solid #00dd00;
+    color: #00dd00;
 }
 
 .theme-blackops .btn-ejemplos,
 .theme-blackops .btn-back {
     background: #1a1a1a;
-    border: 2px solid #00ff00;
-    color: #00ff00;
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+    border: 2px solid #00dd00;
+    color: #00dd00;
+    box-shadow: 0 0 20px rgba(0, 221, 0, 0.3);
 }
 
 .theme-blackops .btn-ejemplos:hover,
 .theme-blackops .btn-back:hover {
     background: #0f0f0f;
-    box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+    box-shadow: 0 0 30px rgba(0, 221, 0, 0.5);
 }
 
 .theme-blackops .control-header {
     background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 100%);
-    border-bottom: 2px solid #00ff00;
+    border-bottom: 2px solid #00dd00;
 }
 
 .theme-blackops .control-header h2 {
-    color: #00ff00;
+    color: #00dd00;
 }
 
 .theme-blackops .control-card {
     background: #1a1a1a;
-    border: 2px solid #00ff00;
-    box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+    border: 2px solid #00dd00;
+    box-shadow: 0 0 20px rgba(0, 221, 0, 0.2);
 }
 
 .theme-blackops .info-row {
     background: #0f0f0f;
-    border: 1px solid #00ff0033;
+    border: 1px solid #00dd0033;
 }
 
 .theme-blackops .info-label,
 .theme-blackops .info-value {
-    color: #00ff00;
+    color: #00dd00;
 }
 
 .theme-blackops .gps-map {
     background: linear-gradient(135deg, #0a1a0a 0%, #0f1f0f 100%);
-    border-color: #00ff00;
+    border-color: #00dd00;
 }
 
 .theme-blackops .mini-card {
     background: #1a1a1a;
-    border: 1px solid #00ff00;
-    box-shadow: 0 0 15px rgba(0, 255, 0, 0.2);
+    border: 1px solid #00dd00;
+    box-shadow: 0 0 15px rgba(0, 221, 0, 0.2);
 }
 
 .theme-blackops .mini-label,
 .theme-blackops .mini-value {
-    color: #00ff00;
+    color: #00dd00;
 }
 
 .theme-blackops .integrated-dashboard {
     background: #0f0f0f;
-    border: 1px solid #00ff00;
+    border: 1px solid #00dd00;
 }
 
 /* ========================================
@@ -517,18 +517,18 @@ body.theme-infantil {
 }
 
 .theme-blackops .truck-marker {
-    filter: drop-shadow(0 0 10px #00ff00);
+    filter: drop-shadow(0 0 10px #00dd00);
     animation: truckBounceGreen 2s ease-in-out infinite;
 }
 
 @keyframes truckBounceGreen {
     0%, 100% { 
         transform: translateY(0) scale(1);
-        filter: drop-shadow(0 0 10px #00ff00);
+        filter: drop-shadow(0 0 10px #00dd00);
     }
     50% { 
         transform: translateY(-5px) scale(1.05);
-        filter: drop-shadow(0 0 20px #00ff00);
+        filter: drop-shadow(0 0 20px #00dd00);
     }
 }
 
@@ -564,4 +564,10 @@ td,
 .btn-ejemplos,
 .btn-back {
     transition: all 0.5s ease;
+}
+
+/* Theme transition animation class */
+.theme-transitioning {
+    opacity: 0.8 !important;
+    transform: scale(0.98) !important;
 }

@@ -23,11 +23,16 @@ class ThemeSwitcher {
 
         const switcherContainer = document.createElement('div');
         switcherContainer.className = 'theme-switcher';
+        switcherContainer.setAttribute('role', 'radiogroup');
+        switcherContainer.setAttribute('aria-label', 'Selector de tema visual');
         switcherContainer.innerHTML = `
             <span class="theme-label">🎨 Tema:</span>
             ${Object.entries(this.themes).map(([key, label]) => `
                 <button class="theme-btn ${key} ${this.currentTheme === key ? 'active' : ''}" 
-                        data-theme="${key}">
+                        data-theme="${key}"
+                        role="radio"
+                        aria-checked="${this.currentTheme === key}"
+                        aria-label="Tema ${label}">
                     ${label}
                 </button>
             `).join('')}
@@ -60,9 +65,11 @@ class ThemeSwitcher {
         this.applyTheme(theme);
         localStorage.setItem('tractocamion-theme', theme);
 
-        // Update button states
+        // Update button states and ARIA attributes
         document.querySelectorAll('.theme-btn').forEach(btn => {
-            btn.classList.toggle('active', btn.dataset.theme === theme);
+            const isActive = btn.dataset.theme === theme;
+            btn.classList.toggle('active', isActive);
+            btn.setAttribute('aria-checked', isActive);
         });
 
         // Trigger animation
@@ -83,13 +90,12 @@ class ThemeSwitcher {
         const container = document.querySelector('.container');
         if (!container) return;
 
-        container.style.opacity = '0';
-        container.style.transform = 'scale(0.95)';
+        // Add animation class instead of direct style manipulation
+        container.classList.add('theme-transitioning');
         
         setTimeout(() => {
-            container.style.opacity = '1';
-            container.style.transform = 'scale(1)';
-        }, 100);
+            container.classList.remove('theme-transitioning');
+        }, 500);
     }
 
     getCurrentTheme() {
