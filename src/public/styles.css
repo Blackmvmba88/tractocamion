@@ -208,3 +208,22 @@ tbody tr:hover {
         padding: 10px;
     }
 }
+
+/* Button for examples page */
+.btn-ejemplos {
+    display: inline-block;
+    padding: 12px 24px;
+    background: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.btn-ejemplos:hover {
+    background: #45a049;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
