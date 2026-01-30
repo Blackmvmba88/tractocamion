@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
@@ -9,21 +10,51 @@ const sequelize = require('../config/database');
 const db = require('../models');
 const { Truck, Operator, Cycle, Process } = db;
 
+// Import database and models
+const { syncDatabase } = require('../models');
+const { testConnection } = require('../config/database');
+const { seedUsers } = require('../seeders/userSeeder');
+
+// Import middleware
+const { apiLimiter, loginLimiter, sanitizeInput } = require('../middleware/security');
+const { authenticateToken, requireRole, checkOwnership } = require('../middleware/auth');
+const { 
+  registerValidation, 
+  loginValidation, 
+  changePasswordValidation,
+  refreshTokenValidation,
+  handleValidationErrors 
+} = require('../middleware/validation');
+
+// Import controllers
+const authController = require('../controllers/authController');
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-// NOTE: For production, add rate limiting middleware here (see SECURITY.md)
-// and configure CORS with specific allowed origins
-app.use(cors());
+// CORS configuration
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN || '*',
+  credentials: true
+};
+app.use(cors(corsOptions));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+app.use(sanitizeInput);
 
 // Serve static files from the public directory
 app.use(express.static(path.join(__dirname, '../public')));
 
 // API Routes
 const apiRouter = express.Router();
+
+// Apply rate limiting to all API routes
+apiRouter.use(apiLimiter);
+
+// =================
+// PUBLIC ROUTES (No authentication required)
+// =================
 
 // Health check endpoint
 apiRouter.get('/health', (req, res) => {

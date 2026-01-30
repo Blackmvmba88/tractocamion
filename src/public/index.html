@@ -10,11 +10,24 @@
 <body>
     <div class="container">
         <header>
-            <h1>🚛 Tractocamión 4.0</h1>
-            <p class="subtitle">Sistema Integral de Gestión Logística</p>
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+                <div>
+                    <h1>🚛 Tractocamión 4.0</h1>
+                    <p class="subtitle">Sistema Integral de Gestión Logística</p>
+                </div>
+                <div id="user-info" style="text-align: right; display: none;">
+                    <p style="margin: 5px 0; font-size: 0.9rem;">
+                        <strong id="user-name"></strong> (<span id="user-role"></span>)
+                    </p>
+                    <button id="logout-btn" style="padding: 8px 16px; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                        🚪 Cerrar Sesión
+                    </button>
+                </div>
+            </div>
             <div id="platform-info" class="platform-badge"></div>
             <div style="margin-top: 15px;">
                 <a href="/ejemplos.html" class="btn-ejemplos">📊 Ver Ejemplos de Controles GPS/Velocidad/Peso/Carga</a>
+                <a href="/login.html" id="login-link" class="btn-ejemplos" style="margin-left: 10px;">🔐 Iniciar Sesión</a>
             </div>
         </header>
 
@@ -103,6 +116,7 @@
         </div>
     </div>
 
+    <script src="/auth.js"></script>
     <script src="/theme-switcher.js"></script>
     <script src="/app.js"></script>
 </body>
