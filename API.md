@@ -257,3 +257,397 @@ This version does not include authentication. For production use, implement JWT 
 ---
 
 **API Version:** 4.0.0
+
+---
+
+## Authentication Endpoints
+
+### Register User
+
+Create a new user account.
+
+**Endpoint:** `POST /api/auth/register`
+
+**Request Body:**
+```json
+{
+  "username": "newuser",
+  "email": "newuser@example.com",
+  "password": "SecurePass123!",
+  "role": "operador",
+  "operator_id": 1
+}
+```
+
+**Validation:**
+- `username`: 3-50 characters, alphanumeric with hyphens/underscores
+- `email`: Valid email format
+- `password`: Minimum 8 characters, must include uppercase, lowercase, and number
+- `role`: One of: `admin`, `gerente`, `operador`
+- `operator_id`: Optional, required only for `operador` role
+
+**Response (201):**
+```json
+{
+  "message": "Usuario registrado exitosamente",
+  "user": {
+    "id": 7,
+    "username": "newuser",
+    "email": "newuser@example.com",
+    "role": "operador",
+    "operator_id": 1
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresIn": 3600
+}
+```
+
+---
+
+### Login
+
+Authenticate a user and get access token.
+
+**Endpoint:** `POST /api/auth/login`
+
+**Request Body:**
+```json
+{
+  "login": "admin",
+  "password": "Admin123!"
+}
+```
+
+**Note:** `login` field accepts either username or email.
+
+**Response (200):**
+```json
+{
+  "message": "Login exitoso",
+  "user": {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@tractocamion.com",
+    "role": "admin",
+    "operator_id": null,
+    "operator": null
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresIn": 3600
+}
+```
+
+**Error Responses:**
+- `401`: Invalid credentials
+- `423`: Account locked due to failed login attempts
+
+---
+
+### Refresh Token
+
+Get a new access token using refresh token.
+
+**Endpoint:** `POST /api/auth/refresh`
+
+**Request Body:**
+```json
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Token renovado exitosamente",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresIn": 3600
+}
+```
+
+---
+
+### Logout
+
+Invalidate current access token.
+
+**Endpoint:** `POST /api/auth/logout`
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response (200):**
+```json
+{
+  "message": "Logout exitoso"
+}
+```
+
+---
+
+### Get Current User Profile
+
+Get authenticated user's profile information.
+
+**Endpoint:** `GET /api/auth/me`
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response (200):**
+```json
+{
+  "id": 1,
+  "username": "admin",
+  "email": "admin@tractocamion.com",
+  "role": "admin",
+  "operator_id": null,
+  "is_active": true,
+  "last_login": "2026-01-30T13:21:54.773Z",
+  "createdAt": "2026-01-30T13:21:23.901Z",
+  "operator": null
+}
+```
+
+---
+
+### Change Password
+
+Change current user's password.
+
+**Endpoint:** `PUT /api/auth/change-password`
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+```json
+{
+  "currentPassword": "OldPass123!",
+  "newPassword": "NewPass123!"
+}
+```
+
+**Response (200):**
+```json
+{
+  "message": "Contraseña actualizada exitosamente"
+}
+```
+
+---
+
+## Protected Endpoints
+
+All endpoints below require authentication. Include the JWT token in the Authorization header:
+
+```
+Authorization: Bearer <your-jwt-token>
+```
+
+### Get Trucks
+
+**Endpoint:** `GET /api/trucks`
+
+**Authorization:**
+- `admin`, `gerente`: See all trucks
+- `operador`: See only assigned truck
+
+**Response:**
+```json
+{
+  "trucks": [...],
+  "total": 4,
+  "active": 3
+}
+```
+
+---
+
+### Get Operators
+
+**Endpoint:** `GET /api/operators`
+
+**Authorization:**
+- `admin`, `gerente`: See all operators
+- `operador`: See only self
+
+**Response:**
+```json
+{
+  "operators": [...],
+  "total": 5,
+  "available": 2
+}
+```
+
+---
+
+### Get Processes
+
+**Endpoint:** `GET /api/processes`
+
+**Authorization:** `admin`, `gerente` only
+
+**Response:**
+```json
+{
+  "processes": [...],
+  "timestamp": "2026-01-30T13:21:44.599Z"
+}
+```
+
+---
+
+### Create Cycle
+
+**Endpoint:** `POST /api/cycles`
+
+**Authorization:** All authenticated users
+- `operador`: Can only create cycles for themselves
+
+**Request Body:**
+```json
+{
+  "truck_id": "TRK-001",
+  "operator_id": 1
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "cycle": {
+    "id": "CYC-...",
+    "truck_id": "TRK-001",
+    "operator_id": 1,
+    "timestamp": "2026-01-30T13:21:44.599Z",
+    "created_by": "admin"
+  }
+}
+```
+
+---
+
+## Role-Based Access Control (RBAC)
+
+### Roles
+
+| Role | Description |
+|------|-------------|
+| `admin` | Full system access, user management |
+| `gerente` | Manager access, see all data but limited admin functions |
+| `operador` | Operator access, see only own data |
+
+### Permission Matrix
+
+| Action | Admin | Gerente | Operador |
+|--------|-------|---------|----------|
+| View dashboard | ✅ | ✅ | ✅ |
+| View all trucks | ✅ | ✅ | ❌ (only own) |
+| View all operators | ✅ | ✅ | ❌ (only self) |
+| View processes | ✅ | ✅ | ❌ |
+| Create cycles | ✅ | ✅ | ✅ (only own) |
+| Manage users | ✅ | ❌ | ❌ |
+
+---
+
+## Security Features
+
+### Rate Limiting
+
+- **Login endpoint**: 5 attempts per 15 minutes
+- **API endpoints**: 100 requests per 15 minutes
+- **Strict operations**: 10 attempts per 15 minutes
+
+### Account Locking
+
+- After 5 failed login attempts, account is locked for 15 minutes
+- Lock duration is configurable via `LOCK_TIME_MINUTES` env variable
+
+### Token Expiration
+
+- **Access Token**: 1 hour (configurable via `JWT_EXPIRES_IN`)
+- **Refresh Token**: 7 days (configurable via `JWT_REFRESH_EXPIRES_IN`)
+
+### Password Requirements
+
+- Minimum 8 characters
+- Must include uppercase letter
+- Must include lowercase letter
+- Must include number
+- Hashed with bcrypt (12 rounds)
+
+---
+
+## Error Responses
+
+### 400 Bad Request
+```json
+{
+  "error": "Errores de validación",
+  "errors": [
+    {
+      "field": "password",
+      "message": "La contraseña debe tener al menos 8 caracteres"
+    }
+  ]
+}
+```
+
+### 401 Unauthorized
+```json
+{
+  "error": "Token no proporcionado"
+}
+```
+
+### 403 Forbidden
+```json
+{
+  "error": "No tienes permisos para esta acción",
+  "requiredRoles": ["admin", "gerente"],
+  "yourRole": "operador"
+}
+```
+
+### 423 Locked
+```json
+{
+  "error": "Cuenta bloqueada temporalmente. Intenta en 12 minutos",
+  "lockedUntil": "2026-01-30T13:45:00.000Z"
+}
+```
+
+### 429 Too Many Requests
+```json
+{
+  "error": "Demasiados intentos de login desde esta IP",
+  "message": "Por favor intenta nuevamente en 15 minutos",
+  "retryAfter": 15
+}
+```
+
+---
+
+## Default Users
+
+The system comes with default users for testing:
+
+| Username | Password | Role |
+|----------|----------|------|
+| admin | Admin123! | admin |
+| gerente1 | Gerente123! | gerente |
+| operador1 | Operador123! | operador |
+
+**⚠️ IMPORTANT:** Change these passwords in production!
+
