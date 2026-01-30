@@ -3,6 +3,12 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
+require('dotenv').config();
+
+const sequelize = require('../config/database');
+const db = require('../models');
+const { Truck, Operator, Cycle, Process } = db;
 
 // Import database and models
 const { syncDatabase } = require('../models');
@@ -60,150 +66,160 @@ apiRouter.get('/health', (req, res) => {
   });
 });
 
-// Authentication routes
-apiRouter.post('/auth/register', 
-  loginLimiter,
-  registerValidation,
-  handleValidationErrors,
-  authController.register
-);
-
-apiRouter.post('/auth/login',
-  loginLimiter,
-  loginValidation,
-  handleValidationErrors,
-  authController.login
-);
-
-apiRouter.post('/auth/refresh',
-  refreshTokenValidation,
-  handleValidationErrors,
-  authController.refresh
-);
-
-// =================
-// PROTECTED ROUTES (Authentication required)
-// =================
-
-// Auth endpoints requiring authentication
-apiRouter.post('/auth/logout',
-  authenticateToken,
-  authController.logout
-);
-
-apiRouter.get('/auth/me',
-  authenticateToken,
-  authController.me
-);
-
-apiRouter.put('/auth/change-password',
-  authenticateToken,
-  changePasswordValidation,
-  handleValidationErrors,
-  authController.changePassword
-);
-
-// Process monitoring endpoint - Admin and Gerente only
-apiRouter.get('/processes', 
-  authenticateToken,
-  requireRole('admin', 'gerente'),
-  (req, res) => {
+// Process monitoring endpoint
+apiRouter.get('/processes', async (req, res) => {
+  try {
+    const processes = await Process.findAll();
+    
+    // Format the data to match the frontend expectation
+    const formattedProcesses = processes.map(p => ({
+      name: p.name,
+      status: p.status,
+      uptime: formatUptime(p.uptime_seconds),
+      cpu: `${p.cpu_percent}%`,
+      memory: `${p.memory_mb}MB`
+    }));
+    
     res.json({
-      processes: getProcessStatus(),
+      processes: formattedProcesses,
       timestamp: new Date().toISOString()
     });
+  } catch (error) {
+    console.error('Error fetching processes:', error);
+    res.status(500).json({ 
+      error: 'Database error',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
-);
+});
 
-// Truck status endpoint - Admin and Gerente see all, Operador sees assigned truck
-apiRouter.get('/trucks',
-  authenticateToken,
-  (req, res) => {
-    let trucks = getTruckStatus();
+// Truck status endpoint
+apiRouter.get('/trucks', async (req, res) => {
+  try {
+    const trucks = await Truck.findAll({
+      include: [{ 
+        model: Operator, 
+        as: 'operator',
+        attributes: ['name']
+      }]
+    });
     
-    // If operator, filter to only their truck
-    if (req.user.role === 'operador' && req.user.operator_id) {
-      trucks = trucks.filter(t => t.operator_id === req.user.operator_id);
-    }
+    // Format the data to match the frontend expectation
+    const formattedTrucks = trucks.map(t => ({
+      id: t.id,
+      plate: t.plate,
+      status: t.status,
+      location: t.location,
+      operator: t.operator ? t.operator.name : null,
+      cycle_time: t.cycle_start_time ? calculateCycleTime(t.cycle_start_time) : null
+    }));
     
     res.json({
-      trucks: trucks,
+      trucks: formattedTrucks,
       total: trucks.length,
       active: trucks.filter(t => t.status === 'active').length
     });
+  } catch (error) {
+    console.error('Error fetching trucks:', error);
+    res.status(500).json({ 
+      error: 'Database error',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
-);
+});
 
-// Operators endpoint - Admin and Gerente see all, Operador sees only themselves
-apiRouter.get('/operators',
-  authenticateToken,
-  (req, res) => {
-    let operators = getOperatorStatus();
+// Operators endpoint
+apiRouter.get('/operators', async (req, res) => {
+  try {
+    const operators = await Operator.findAll({
+      include: [{
+        model: Truck,
+        as: 'truck',
+        attributes: ['id', 'plate']
+      }]
+    });
     
-    // If operator, filter to only themselves
-    if (req.user.role === 'operador' && req.user.operator_id) {
-      operators = operators.filter(o => o.id === `OP-${String(req.user.operator_id).padStart(3, '0')}`);
-    }
+    // Format the data to match the frontend expectation
+    const formattedOperators = operators.map(o => ({
+      id: o.code,
+      name: o.name,
+      status: o.status,
+      hours: `${o.total_hours}h`,
+      cycles: o.total_cycles,
+      earnings: `$${o.total_earnings}`
+    }));
     
     res.json({
-      operators: operators,
+      operators: formattedOperators,
       total: operators.length,
       available: operators.filter(o => o.status === 'available').length
     });
+  } catch (error) {
+    console.error('Error fetching operators:', error);
+    res.status(500).json({ 
+      error: 'Database error',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
-);
+});
 
-// Single operator endpoint - with ownership check
-apiRouter.get('/operators/:id',
-  authenticateToken,
-  checkOwnership,
-  (req, res) => {
-    const operators = getOperatorStatus();
-    const operator = operators.find(o => o.id === req.params.id);
-    
-    if (!operator) {
-      return res.status(404).json({ error: 'Operador no encontrado' });
-    }
-    
-    res.json(operator);
+// Cycle tracking endpoint
+apiRouter.post('/cycles', async (req, res) => {
+  const cycle = req.body;
+  
+  // Basic validation
+  if (!cycle.truck_id || !cycle.operator_id) {
+    return res.status(400).json({
+      success: false,
+      error: 'truck_id and operator_id are required'
+    });
   }
-);
-
-// Cycle tracking endpoint - All authenticated users
-apiRouter.post('/cycles',
-  authenticateToken,
-  (req, res) => {
-    const cycle = req.body;
-    
-    // Basic validation
-    if (!cycle.truck_id || !cycle.operator_id) {
-      return res.status(400).json({
+  
+  try {
+    // Validate that truck and operator exist
+    const truck = await Truck.findByPk(cycle.truck_id);
+    if (!truck) {
+      return res.status(404).json({
         success: false,
-        error: 'truck_id and operator_id are required'
+        error: `Truck ${cycle.truck_id} not found`
       });
     }
     
-    // If operador, ensure they're creating cycles for themselves
-    if (req.user.role === 'operador') {
-      if (parseInt(cycle.operator_id) !== req.user.operator_id) {
-        return res.status(403).json({
-          success: false,
-          error: 'No puedes crear ciclos para otros operadores'
-        });
-      }
+    const operator = await Operator.findByPk(cycle.operator_id);
+    if (!operator) {
+      return res.status(404).json({
+        success: false,
+        error: `Operator ${cycle.operator_id} not found`
+      });
     }
+    
+    const newCycle = await Cycle.create({
+      id: generateId(),
+      truck_id: cycle.truck_id,
+      operator_id: cycle.operator_id,
+      start_time: new Date(),
+      start_location: cycle.start_location,
+      status: 'in_progress'
+    });
     
     res.json({
       success: true,
       cycle: {
-        id: generateId(),
-        ...cycle,
-        timestamp: new Date().toISOString(),
-        created_by: req.user.username
+        id: newCycle.id,
+        truck_id: newCycle.truck_id,
+        operator_id: newCycle.operator_id,
+        timestamp: newCycle.start_time.toISOString()
       }
     });
+  } catch (error) {
+    console.error('Error creating cycle:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Database error',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
-);
+});
 
 app.use('/api', apiRouter);
 
@@ -212,77 +228,64 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// Mock data functions
-function getProcessStatus() {
-  return [
-    { name: 'Web Server', status: 'running', uptime: '5h 23m', cpu: '2.3%', memory: '45MB' },
-    { name: 'Database', status: 'running', uptime: '5h 23m', cpu: '1.1%', memory: '128MB' },
-    { name: 'API Gateway', status: 'running', uptime: '5h 23m', cpu: '0.8%', memory: '32MB' },
-    { name: 'Process Monitor', status: 'running', uptime: '5h 23m', cpu: '0.3%', memory: '18MB' }
-  ];
-}
-
-function getTruckStatus() {
-  return [
-    { id: 'TRK-001', plate: 'ABC-123', status: 'active', location: 'Patio A', operator: 'Juan Pérez', operator_id: 1, cycle_time: '45min' },
-    { id: 'TRK-002', plate: 'DEF-456', status: 'active', location: 'Zona de Carga', operator: 'María García', operator_id: 2, cycle_time: '32min' },
-    { id: 'TRK-003', plate: 'GHI-789', status: 'resting', location: 'Área de Descanso', operator: null, operator_id: null, cycle_time: null },
-    { id: 'TRK-004', plate: 'JKL-012', status: 'active', location: 'Patio B', operator: 'Carlos López', operator_id: 3, cycle_time: '28min' }
-  ];
-}
-
-function getOperatorStatus() {
-  return [
-    { id: 'OP-001', name: 'Juan Pérez', status: 'working', hours: '3.5h', cycles: 4, earnings: '$280' },
-    { id: 'OP-002', name: 'María García', status: 'working', hours: '2.8h', cycles: 3, earnings: '$210' },
-    { id: 'OP-003', name: 'Carlos López', status: 'working', hours: '4.2h', cycles: 5, earnings: '$350' },
-    { id: 'OP-004', name: 'Ana Rodríguez', status: 'resting', hours: '6.0h', cycles: 7, earnings: '$490' },
-    { id: 'OP-005', name: 'Pedro Martínez', status: 'available', hours: '0h', cycles: 0, earnings: '$0' }
-  ];
-}
-
-function generateId() {
-  // Add random component to reduce collision risk
-  const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return 'CYC-' + timestamp + '-' + random;
-}
-
-// Start server
-const server = app.listen(PORT, async () => {
-  console.log('🚛 Tractocamión 4.0 - Sistema de Gestión Logística');
-  console.log('='.repeat(50));
-  console.log(`✅ Servidor iniciado en puerto ${PORT}`);
-  console.log(`🌍 Plataforma: ${process.platform}`);
-  console.log(`📡 API disponible en: http://localhost:${PORT}/api`);
-  console.log(`🖥️  Dashboard en: http://localhost:${PORT}`);
-  console.log('='.repeat(50));
-  
-  // Initialize database
-  try {
-    await testConnection();
-    await syncDatabase();
-    await seedUsers();
-    console.log('='.repeat(50));
-  } catch (error) {
-    console.error('❌ Error initializing database:', error);
-  }
-}).on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`❌ Error: Puerto ${PORT} ya está en uso`);
-    console.error(`💡 Intenta con un puerto diferente: PORT=8080 npm start`);
-  } else {
-    console.error('❌ Error al iniciar el servidor:', err.message);
-  }
-  process.exit(1);
-});
-
-// Cleanup on shutdown
-process.on('SIGTERM', async () => {
-  console.log('SIGTERM signal received: closing HTTP server');
-  server.close(() => {
-    console.log('HTTP server closed');
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
-module.exports = { app, server };
+// Helper functions
+function formatUptime(seconds) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return `${hours}h ${minutes}m`;
+}
+
+function calculateCycleTime(startTime) {
+  const now = new Date();
+  const start = new Date(startTime);
+  const diffMinutes = Math.floor((now - start) / (1000 * 60));
+  return `${diffMinutes}min`;
+}
+
+function generateId() {
+  // Use UUID for unique and secure ID generation
+  const uuid = uuidv4().split('-')[0].toUpperCase();
+  const timestamp = Date.now().toString(36).toUpperCase();
+  return 'CYC-' + timestamp + '-' + uuid;
+}
+
+// Test database connection and start server
+sequelize.authenticate()
+  .then(() => {
+    console.log('✅ Database connection established successfully');
+    
+    const server = app.listen(PORT, () => {
+      console.log('🚛 Tractocamión 4.0 - Sistema de Gestión Logística');
+      console.log('='.repeat(50));
+      console.log(`✅ Servidor iniciado en puerto ${PORT}`);
+      console.log(`🌍 Plataforma: ${process.platform}`);
+      console.log(`📡 API disponible en: http://localhost:${PORT}/api`);
+      console.log(`🖥️  Dashboard en: http://localhost:${PORT}`);
+      console.log('='.repeat(50));
+    }).on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`❌ Error: Puerto ${PORT} ya está en uso`);
+        console.error(`💡 Intenta con un puerto diferente: PORT=8080 npm start`);
+      } else {
+        console.error('❌ Error al iniciar el servidor:', err.message);
+      }
+      process.exit(1);
+    });
+    
+    module.exports = { app, server };
+  })
+  .catch(err => {
+    console.error('❌ Unable to connect to the database:', err.message);
+    console.error('💡 Make sure PostgreSQL is running and DATABASE_URL is correct');
+    console.error('💡 See INSTALL.md for database setup instructions');
+    process.exit(1);
+  });

@@ -1,43 +1,29 @@
-const { sequelize } = require('../config/database');
-const User = require('./User');
-const TokenBlacklist = require('./TokenBlacklist');
-const Operator = require('./Operator');
+'use strict';
 
-// Define associations
-User.belongsTo(Operator, {
-  foreignKey: 'operator_id',
-  as: 'operator'
-});
+const fs = require('fs');
+const path = require('path');
+const Sequelize = require('sequelize');
+const sequelize = require('../config/database');
 
-Operator.hasOne(User, {
-  foreignKey: 'operator_id',
-  as: 'user'
-});
+const db = {};
 
-TokenBlacklist.belongsTo(User, {
-  foreignKey: 'user_id',
-  as: 'user'
-});
+fs
+  .readdirSync(__dirname)
+  .filter(file => {
+    return (file.indexOf('.') !== 0) && (file !== 'index.js') && (file.slice(-3) === '.js');
+  })
+  .forEach(file => {
+    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+    db[model.name] = model;
+  });
 
-User.hasMany(TokenBlacklist, {
-  foreignKey: 'user_id',
-  as: 'blacklistedTokens'
-});
-
-// Sync database (create tables if they don't exist)
-async function syncDatabase() {
-  try {
-    await sequelize.sync({ alter: true });
-    console.log('✅ Database synchronized successfully.');
-  } catch (error) {
-    console.error('❌ Error synchronizing database:', error);
+Object.keys(db).forEach(modelName => {
+  if (db[modelName].associate) {
+    db[modelName].associate(db);
   }
-}
+});
 
-module.exports = {
-  sequelize,
-  User,
-  TokenBlacklist,
-  Operator,
-  syncDatabase
-};
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
+
+module.exports = db;
