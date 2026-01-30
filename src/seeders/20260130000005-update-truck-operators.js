@@ -22,7 +22,7 @@ module.exports = {
   down: async (queryInterface, Sequelize) => {
     await queryInterface.bulkUpdate('Trucks',
       { current_operator_id: null },
-      { id: ['TRK-001', 'TRK-002', 'TRK-004'] }
+      { id: { [Sequelize.Op.in]: ['TRK-001', 'TRK-002', 'TRK-004'] } }
     );
   }
 };

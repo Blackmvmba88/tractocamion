@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
 require('dotenv').config();
 
 const sequelize = require('../config/database');
@@ -144,6 +145,23 @@ apiRouter.post('/cycles', async (req, res) => {
   }
   
   try {
+    // Validate that truck and operator exist
+    const truck = await Truck.findByPk(cycle.truck_id);
+    if (!truck) {
+      return res.status(404).json({
+        success: false,
+        error: `Truck ${cycle.truck_id} not found`
+      });
+    }
+    
+    const operator = await Operator.findByPk(cycle.operator_id);
+    if (!operator) {
+      return res.status(404).json({
+        success: false,
+        error: `Operator ${cycle.operator_id} not found`
+      });
+    }
+    
     const newCycle = await Cycle.create({
       id: generateId(),
       truck_id: cycle.truck_id,
@@ -203,10 +221,10 @@ function calculateCycleTime(startTime) {
 }
 
 function generateId() {
-  // Add random component to reduce collision risk
+  // Use UUID for unique and secure ID generation
+  const uuid = uuidv4().split('-')[0].toUpperCase();
   const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return 'CYC-' + timestamp + '-' + random;
+  return 'CYC-' + timestamp + '-' + uuid;
 }
 
 // Test database connection and start server
