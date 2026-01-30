@@ -10,6 +10,7 @@ This guide covers installation on **all major platforms**: Linux, Windows, macOS
 
 - **Node.js** 14.0.0 or higher
 - **npm** (included with Node.js)
+- **PostgreSQL** 12.0 or higher (for database functionality)
 
 ---
 
@@ -173,6 +174,133 @@ npm start
 
 ---
 
+## 🗄️ Database Setup (PostgreSQL)
+
+The application uses PostgreSQL for persistent data storage. Follow these steps to set up the database:
+
+### Installing PostgreSQL
+
+#### Linux (Ubuntu/Debian)
+```bash
+# Install PostgreSQL
+sudo apt update
+sudo apt install postgresql postgresql-contrib -y
+
+# Start PostgreSQL service
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+
+# Access PostgreSQL prompt
+sudo -u postgres psql
+```
+
+#### Linux (CentOS/RHEL/Fedora)
+```bash
+# Install PostgreSQL
+sudo dnf install postgresql-server postgresql-contrib -y
+
+# Initialize database
+sudo postgresql-setup --initdb
+
+# Start and enable service
+sudo systemctl start postgresql
+sudo systemctl enable postgresql
+
+# Access PostgreSQL prompt
+sudo -u postgres psql
+```
+
+#### Windows
+1. Download PostgreSQL from [postgresql.org](https://www.postgresql.org/download/windows/)
+2. Run the installer
+3. Follow the installation wizard
+4. Remember the password you set for the `postgres` user
+5. Open pgAdmin or use the SQL Shell (psql)
+
+#### macOS
+```bash
+# Using Homebrew
+brew install postgresql@15
+
+# Start PostgreSQL
+brew services start postgresql@15
+
+# Access PostgreSQL prompt
+psql postgres
+```
+
+#### Termux (Android)
+```bash
+# Install PostgreSQL
+pkg install postgresql -y
+
+# Initialize database cluster
+initdb $PREFIX/var/lib/postgresql
+
+# Start PostgreSQL
+pg_ctl -D $PREFIX/var/lib/postgresql start
+
+# Access PostgreSQL prompt
+psql postgres
+```
+
+### Creating the Database
+
+Once PostgreSQL is installed and running, create the application database:
+
+```sql
+-- In PostgreSQL prompt (psql)
+CREATE DATABASE tractocamion;
+CREATE USER tractocamion_user WITH PASSWORD 'your_secure_password';
+GRANT ALL PRIVILEGES ON DATABASE tractocamion TO tractocamion_user;
+\q
+```
+
+### Configuring Database Connection
+
+1. Copy the example environment file:
+```bash
+cp .env.example .env
+```
+
+2. Edit `.env` and update the `DATABASE_URL`:
+```env
+DATABASE_URL=postgresql://tractocamion_user:your_secure_password@localhost:5432/tractocamion
+```
+
+### Running Migrations and Seeders
+
+After configuring the database connection:
+
+```bash
+# Run migrations to create tables
+npm run db:migrate
+
+# Seed the database with initial data
+npm run db:seed
+
+# Start the application
+npm start
+```
+
+### Database Management Commands
+
+```bash
+# Run migrations
+npm run db:migrate
+
+# Seed database with test data
+npm run db:seed
+
+# Reset database (CAUTION: This will delete all data!)
+npm run db:reset
+
+# Create database (if not exists)
+npm run db:create
+```
+
+---
+
 ## 🌐 Accessing the Application
 
 After starting the server, open your browser and navigate to:
@@ -284,6 +412,53 @@ Ensure Node.js is in your PATH:
 # Check if node is accessible
 which node  # Linux/macOS/Termux
 where node  # Windows
+```
+
+### Database Connection Issues
+
+If you see "Unable to connect to the database" errors:
+
+```bash
+# 1. Check PostgreSQL is running
+# Linux/macOS
+sudo systemctl status postgresql
+
+# Termux
+pg_ctl -D $PREFIX/var/lib/postgresql status
+
+# 2. Verify database exists
+psql -U postgres -l
+
+# 3. Test connection
+psql -U tractocamion_user -d tractocamion -h localhost
+
+# 4. Check your .env file has correct DATABASE_URL
+cat .env | grep DATABASE_URL
+```
+
+### Migration Errors
+
+If migrations fail:
+
+```bash
+# Reset and try again
+npm run db:reset
+
+# Or manually
+sequelize-cli db:migrate:undo:all
+sequelize-cli db:migrate
+sequelize-cli db:seed:all
+```
+
+### Permission Issues with PostgreSQL
+
+```bash
+# Linux - Grant proper permissions
+sudo -u postgres psql
+GRANT ALL PRIVILEGES ON DATABASE tractocamion TO tractocamion_user;
+GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO tractocamion_user;
+GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO tractocamion_user;
+\q
 ```
 
 ---

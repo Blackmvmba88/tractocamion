@@ -2,6 +2,12 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const path = require('path');
+const { v4: uuidv4 } = require('uuid');
+require('dotenv').config();
+
+const sequelize = require('../config/database');
+const db = require('../models');
+const { Truck, Operator, Cycle, Process } = db;
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -30,35 +36,104 @@ apiRouter.get('/health', (req, res) => {
 });
 
 // Process monitoring endpoint
-apiRouter.get('/processes', (req, res) => {
-  res.json({
-    processes: getProcessStatus(),
-    timestamp: new Date().toISOString()
-  });
+apiRouter.get('/processes', async (req, res) => {
+  try {
+    const processes = await Process.findAll();
+    
+    // Format the data to match the frontend expectation
+    const formattedProcesses = processes.map(p => ({
+      name: p.name,
+      status: p.status,
+      uptime: formatUptime(p.uptime_seconds),
+      cpu: `${p.cpu_percent}%`,
+      memory: `${p.memory_mb}MB`
+    }));
+    
+    res.json({
+      processes: formattedProcesses,
+      timestamp: new Date().toISOString()
+    });
+  } catch (error) {
+    console.error('Error fetching processes:', error);
+    res.status(500).json({ 
+      error: 'Database error',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
 });
 
 // Truck status endpoint
-apiRouter.get('/trucks', (req, res) => {
-  const trucks = getTruckStatus();
-  res.json({
-    trucks: trucks,
-    total: trucks.length,
-    active: trucks.filter(t => t.status === 'active').length
-  });
+apiRouter.get('/trucks', async (req, res) => {
+  try {
+    const trucks = await Truck.findAll({
+      include: [{ 
+        model: Operator, 
+        as: 'operator',
+        attributes: ['name']
+      }]
+    });
+    
+    // Format the data to match the frontend expectation
+    const formattedTrucks = trucks.map(t => ({
+      id: t.id,
+      plate: t.plate,
+      status: t.status,
+      location: t.location,
+      operator: t.operator ? t.operator.name : null,
+      cycle_time: t.cycle_start_time ? calculateCycleTime(t.cycle_start_time) : null
+    }));
+    
+    res.json({
+      trucks: formattedTrucks,
+      total: trucks.length,
+      active: trucks.filter(t => t.status === 'active').length
+    });
+  } catch (error) {
+    console.error('Error fetching trucks:', error);
+    res.status(500).json({ 
+      error: 'Database error',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
 });
 
 // Operators endpoint
-apiRouter.get('/operators', (req, res) => {
-  const operators = getOperatorStatus();
-  res.json({
-    operators: operators,
-    total: operators.length,
-    available: operators.filter(o => o.status === 'available').length
-  });
+apiRouter.get('/operators', async (req, res) => {
+  try {
+    const operators = await Operator.findAll({
+      include: [{
+        model: Truck,
+        as: 'truck',
+        attributes: ['id', 'plate']
+      }]
+    });
+    
+    // Format the data to match the frontend expectation
+    const formattedOperators = operators.map(o => ({
+      id: o.code,
+      name: o.name,
+      status: o.status,
+      hours: `${o.total_hours}h`,
+      cycles: o.total_cycles,
+      earnings: `$${o.total_earnings}`
+    }));
+    
+    res.json({
+      operators: formattedOperators,
+      total: operators.length,
+      available: operators.filter(o => o.status === 'available').length
+    });
+  } catch (error) {
+    console.error('Error fetching operators:', error);
+    res.status(500).json({ 
+      error: 'Database error',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
 });
 
 // Cycle tracking endpoint
-apiRouter.post('/cycles', (req, res) => {
+apiRouter.post('/cycles', async (req, res) => {
   const cycle = req.body;
   
   // Basic validation
@@ -69,14 +144,50 @@ apiRouter.post('/cycles', (req, res) => {
     });
   }
   
-  res.json({
-    success: true,
-    cycle: {
-      id: generateId(),
-      ...cycle,
-      timestamp: new Date().toISOString()
+  try {
+    // Validate that truck and operator exist
+    const truck = await Truck.findByPk(cycle.truck_id);
+    if (!truck) {
+      return res.status(404).json({
+        success: false,
+        error: `Truck ${cycle.truck_id} not found`
+      });
     }
-  });
+    
+    const operator = await Operator.findByPk(cycle.operator_id);
+    if (!operator) {
+      return res.status(404).json({
+        success: false,
+        error: `Operator ${cycle.operator_id} not found`
+      });
+    }
+    
+    const newCycle = await Cycle.create({
+      id: generateId(),
+      truck_id: cycle.truck_id,
+      operator_id: cycle.operator_id,
+      start_time: new Date(),
+      start_location: cycle.start_location,
+      status: 'in_progress'
+    });
+    
+    res.json({
+      success: true,
+      cycle: {
+        id: newCycle.id,
+        truck_id: newCycle.truck_id,
+        operator_id: newCycle.operator_id,
+        timestamp: newCycle.start_time.toISOString()
+      }
+    });
+  } catch (error) {
+    console.error('Error creating cycle:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Database error',
+      message: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
 });
 
 app.use('/api', apiRouter);
@@ -86,59 +197,64 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
-// Mock data functions
-function getProcessStatus() {
-  return [
-    { name: 'Web Server', status: 'running', uptime: '5h 23m', cpu: '2.3%', memory: '45MB' },
-    { name: 'Database', status: 'running', uptime: '5h 23m', cpu: '1.1%', memory: '128MB' },
-    { name: 'API Gateway', status: 'running', uptime: '5h 23m', cpu: '0.8%', memory: '32MB' },
-    { name: 'Process Monitor', status: 'running', uptime: '5h 23m', cpu: '0.3%', memory: '18MB' }
-  ];
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ 
+    error: 'Internal server error',
+    message: process.env.NODE_ENV === 'development' ? err.message : undefined
+  });
+});
+
+// Helper functions
+function formatUptime(seconds) {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  return `${hours}h ${minutes}m`;
 }
 
-function getTruckStatus() {
-  return [
-    { id: 'TRK-001', plate: 'ABC-123', status: 'active', location: 'Patio A', operator: 'Juan Pérez', cycle_time: '45min' },
-    { id: 'TRK-002', plate: 'DEF-456', status: 'active', location: 'Zona de Carga', operator: 'María García', cycle_time: '32min' },
-    { id: 'TRK-003', plate: 'GHI-789', status: 'resting', location: 'Área de Descanso', operator: null, cycle_time: null },
-    { id: 'TRK-004', plate: 'JKL-012', status: 'active', location: 'Patio B', operator: 'Carlos López', cycle_time: '28min' }
-  ];
-}
-
-function getOperatorStatus() {
-  return [
-    { id: 'OP-001', name: 'Juan Pérez', status: 'working', hours: '3.5h', cycles: 4, earnings: '$280' },
-    { id: 'OP-002', name: 'María García', status: 'working', hours: '2.8h', cycles: 3, earnings: '$210' },
-    { id: 'OP-003', name: 'Carlos López', status: 'working', hours: '4.2h', cycles: 5, earnings: '$350' },
-    { id: 'OP-004', name: 'Ana Rodríguez', status: 'resting', hours: '6.0h', cycles: 7, earnings: '$490' },
-    { id: 'OP-005', name: 'Pedro Martínez', status: 'available', hours: '0h', cycles: 0, earnings: '$0' }
-  ];
+function calculateCycleTime(startTime) {
+  const now = new Date();
+  const start = new Date(startTime);
+  const diffMinutes = Math.floor((now - start) / (1000 * 60));
+  return `${diffMinutes}min`;
 }
 
 function generateId() {
-  // Add random component to reduce collision risk
+  // Use UUID for unique and secure ID generation
+  const uuid = uuidv4().split('-')[0].toUpperCase();
   const timestamp = Date.now().toString(36).toUpperCase();
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
-  return 'CYC-' + timestamp + '-' + random;
+  return 'CYC-' + timestamp + '-' + uuid;
 }
 
-// Start server
-const server = app.listen(PORT, () => {
-  console.log('🚛 Tractocamión 4.0 - Sistema de Gestión Logística');
-  console.log('='.repeat(50));
-  console.log(`✅ Servidor iniciado en puerto ${PORT}`);
-  console.log(`🌍 Plataforma: ${process.platform}`);
-  console.log(`📡 API disponible en: http://localhost:${PORT}/api`);
-  console.log(`🖥️  Dashboard en: http://localhost:${PORT}`);
-  console.log('='.repeat(50));
-}).on('error', (err) => {
-  if (err.code === 'EADDRINUSE') {
-    console.error(`❌ Error: Puerto ${PORT} ya está en uso`);
-    console.error(`💡 Intenta con un puerto diferente: PORT=8080 npm start`);
-  } else {
-    console.error('❌ Error al iniciar el servidor:', err.message);
-  }
-  process.exit(1);
-});
-
-module.exports = { app, server };
+// Test database connection and start server
+sequelize.authenticate()
+  .then(() => {
+    console.log('✅ Database connection established successfully');
+    
+    const server = app.listen(PORT, () => {
+      console.log('🚛 Tractocamión 4.0 - Sistema de Gestión Logística');
+      console.log('='.repeat(50));
+      console.log(`✅ Servidor iniciado en puerto ${PORT}`);
+      console.log(`🌍 Plataforma: ${process.platform}`);
+      console.log(`📡 API disponible en: http://localhost:${PORT}/api`);
+      console.log(`🖥️  Dashboard en: http://localhost:${PORT}`);
+      console.log('='.repeat(50));
+    }).on('error', (err) => {
+      if (err.code === 'EADDRINUSE') {
+        console.error(`❌ Error: Puerto ${PORT} ya está en uso`);
+        console.error(`💡 Intenta con un puerto diferente: PORT=8080 npm start`);
+      } else {
+        console.error('❌ Error al iniciar el servidor:', err.message);
+      }
+      process.exit(1);
+    });
+    
+    module.exports = { app, server };
+  })
+  .catch(err => {
+    console.error('❌ Unable to connect to the database:', err.message);
+    console.error('💡 Make sure PostgreSQL is running and DATABASE_URL is correct');
+    console.error('💡 See INSTALL.md for database setup instructions');
+    process.exit(1);
+  });
