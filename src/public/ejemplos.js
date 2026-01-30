@@ -7,8 +7,9 @@ const CRITICAL_THRESHOLD = 90;
 // DOM element cache
 let domElements = {};
 
-// Interval ID for cleanup
+// Interval IDs for cleanup
 let simulationIntervalId = null;
+let routeAnimationIntervalId = null;
 
 // Simulation data
 let simulationData = {
@@ -95,6 +96,10 @@ function cleanup() {
     if (simulationIntervalId) {
         clearInterval(simulationIntervalId);
         simulationIntervalId = null;
+    }
+    if (routeAnimationIntervalId) {
+        clearInterval(routeAnimationIntervalId);
+        routeAnimationIntervalId = null;
     }
 }
 
@@ -242,10 +247,17 @@ function updateTimestamp() {
 
 // Start simulation with random variations
 function startSimulation() {
+    // Initialize route animation
+    animateRoute();
+    
     simulationIntervalId = setInterval(() => {
-        // Simulate GPS movement
-        simulationData.gps.markerX += (Math.random() - 0.5) * 5;
-        simulationData.gps.markerY += (Math.random() - 0.5) * 5;
+        // Simulate GPS movement with smoother transitions
+        const targetX = simulationData.gps.markerX + (Math.random() - 0.5) * 8;
+        const targetY = simulationData.gps.markerY + (Math.random() - 0.5) * 8;
+        
+        // Smooth interpolation
+        simulationData.gps.markerX += (targetX - simulationData.gps.markerX) * 0.3;
+        simulationData.gps.markerY += (targetY - simulationData.gps.markerY) * 0.3;
         
         // Keep marker within bounds
         simulationData.gps.markerX = Math.max(5, Math.min(90, simulationData.gps.markerX));
@@ -297,6 +309,32 @@ function startSimulation() {
 
         updateAll();
     }, 2000); // Update every 2 seconds
+}
+
+// Animate route line following truck
+function animateRoute() {
+    const routeLine = document.getElementById('route-line');
+    if (!routeLine) return;
+    
+    let animationPhase = 0;
+    
+    routeAnimationIntervalId = setInterval(() => {
+        const truckMarker = domElements.truckMarker;
+        if (!truckMarker) return;
+        
+        // Make route line follow truck dynamically
+        const truckX = parseFloat(truckMarker.style.left) || 20;
+        const truckY = parseFloat(truckMarker.style.top) || 50;
+        
+        routeLine.style.left = `${Math.max(0, truckX - 30)}%`;
+        routeLine.style.top = `${truckY}%`;
+        routeLine.style.width = '30%';
+        
+        // Add pulsing effect to route (opacity clamped between 0.3 and 0.5)
+        animationPhase = (animationPhase + 2) % 100;
+        const pulseValue = Math.abs(Math.sin(animationPhase / 10)) * 0.2;
+        routeLine.style.opacity = 0.3 + pulseValue;
+    }, 200);
 }
 
 // Start when DOM is ready
