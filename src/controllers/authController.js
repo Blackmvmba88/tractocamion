@@ -44,7 +44,20 @@ function getTokenExpirationTime(expiresIn) {
  */
 async function register(req, res) {
   try {
-    const { username, email, password, role, operator_id } = req.body;
+    let { username, email, password, role, operator_id } = req.body;
+
+    // Security: Only allow operador role for public registration
+    // Admin/gerente roles can only be assigned by existing admins
+    // This prevents privilege escalation
+    if (role && role !== 'operador') {
+      return res.status(403).json({ 
+        error: 'No tienes permisos para crear usuarios con ese rol',
+        message: 'Solo administradores pueden crear cuentas de gerente o admin'
+      });
+    }
+    
+    // Default to operador role for public registration
+    role = 'operador';
 
     // Check if username already exists
     const existingUser = await User.findOne({
@@ -84,8 +97,8 @@ async function register(req, res) {
       username,
       email,
       password, // Will be hashed by beforeCreate hook
-      role: role || 'operador',
-      operator_id: role === 'operador' ? operator_id : null
+      role, // Always 'operador' for public registration
+      operator_id: operator_id || null
     });
 
     // Generate tokens

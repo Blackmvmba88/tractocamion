@@ -99,7 +99,10 @@ async function seedUsers() {
       console.log(`${user.role.toUpperCase().padEnd(10)} - Username: ${user.username.padEnd(15)} Password: ${user.password}`);
     });
     console.log('━'.repeat(50));
-    console.log('⚠️  IMPORTANTE: Cambia estas contraseñas en producción!\n');
+    console.log('⚠️  SECURITY WARNING: These are TEST credentials with WEAK passwords!');
+    console.log('⚠️  IMPORTANT: Change ALL passwords immediately in production!');
+    console.log('⚠️  Run: npm run change-default-passwords (when implemented)');
+    console.log('━'.repeat(50) + '\n');
 
   } catch (error) {
     console.error('❌ Error seeding users:', error);

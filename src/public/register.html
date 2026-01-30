@@ -48,12 +48,10 @@
                 
                 <div class="form-group">
                     <label for="role">Rol</label>
-                    <select id="role" name="role" required>
-                        <option value="operador">Operador</option>
-                        <option value="gerente">Gerente</option>
-                        <option value="admin">Administrador</option>
+                    <select id="role" name="role" required disabled title="Solo operador disponible para registro público">
+                        <option value="operador" selected>Operador</option>
                     </select>
-                    <small>Solo administradores pueden crear cuentas de gerente/admin</small>
+                    <small>⚠️ Registro público solo permite crear cuentas de operador. Contacta un administrador para otros roles.</small>
                 </div>
                 
                 <div id="error-message" class="error-box" style="display:none;"></div>

@@ -62,12 +62,17 @@ async function checkLoginAttempts(user) {
 
 /**
  * Middleware to sanitize user input
+ * Removes null bytes and HTML tags to prevent XSS
  */
 function sanitizeInput(req, res, next) {
-  // Remove any null bytes from strings
   const sanitize = (obj) => {
     if (typeof obj === 'string') {
-      return obj.replace(/\0/g, '');
+      // Remove null bytes
+      let clean = obj.replace(/\0/g, '');
+      // Remove HTML tags (basic XSS prevention)
+      clean = clean.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '');
+      clean = clean.replace(/<[^>]*>/g, '');
+      return clean;
     }
     if (typeof obj === 'object' && obj !== null) {
       for (let key in obj) {
