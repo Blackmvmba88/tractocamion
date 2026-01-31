@@ -28,6 +28,9 @@ const {
 
 // Import controllers
 const authController = require('../controllers/authController');
+const cycleController = require('../controllers/cycleController');
+const analyticsController = require('../controllers/analyticsController');
+const nfcController = require('../controllers/nfcController');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -217,63 +220,56 @@ apiRouter.get('/operators', async (req, res) => {
   }
 });
 
-// Cycle tracking endpoint
-apiRouter.post('/cycles', async (req, res) => {
-  const cycle = req.body;
-  
-  // Basic validation
-  if (!cycle.truck_id || !cycle.operator_id) {
-    return res.status(400).json({
-      success: false,
-      error: 'truck_id and operator_id are required'
-    });
-  }
-  
-  try {
-    // Validate that truck and operator exist
-    const truck = await Truck.findByPk(cycle.truck_id);
-    if (!truck) {
-      return res.status(404).json({
-        success: false,
-        error: `Truck ${cycle.truck_id} not found`
-      });
-    }
-    
-    const operator = await Operator.findByPk(cycle.operator_id);
-    if (!operator) {
-      return res.status(404).json({
-        success: false,
-        error: `Operator ${cycle.operator_id} not found`
-      });
-    }
-    
-    const newCycle = await Cycle.create({
-      id: generateId(),
-      truck_id: cycle.truck_id,
-      operator_id: cycle.operator_id,
-      start_time: new Date(),
-      start_location: cycle.start_location,
-      status: 'in_progress'
-    });
-    
-    res.json({
-      success: true,
-      cycle: {
-        id: newCycle.id,
-        truck_id: newCycle.truck_id,
-        operator_id: newCycle.operator_id,
-        timestamp: newCycle.start_time.toISOString()
-      }
-    });
-  } catch (error) {
-    console.error('Error creating cycle:', error);
-    res.status(500).json({
-      success: false,
-      error: 'Database error',
-      message: process.env.NODE_ENV === 'development' ? error.message : undefined
-    });
-  }
-});
+// =================
+// CYCLE MANAGEMENT ROUTES (Enhanced with completeness)
+// =================
+
+// Get all cycles (with filters)
+apiRouter.get('/cycles', cycleController.getCycles);
+
+// Get single cycle details
+apiRouter.get('/cycles/:id', cycleController.getCycle);
+
+// Create new cycle
+apiRouter.post('/cycles', cycleController.createCycle);
+
+// Complete a cycle
+apiRouter.post('/cycles/:id/complete', cycleController.completeCycle);
+
+// Update cycle location (real-time tracking)
+apiRouter.patch('/cycles/:id/location', cycleController.updateLocation);
+
+// =================
+// ANALYTICS ROUTES (Consciousness - Intelligent Insights)
+// =================
+
+// Dashboard analytics
+apiRouter.get('/analytics/dashboard', analyticsController.getDashboard);
+
+// Operator performance metrics
+apiRouter.get('/analytics/operators', analyticsController.getOperatorMetrics);
+
+// Truck utilization metrics
+apiRouter.get('/analytics/trucks', analyticsController.getTruckMetrics);
+
+// Alerts and anomalies (intelligent monitoring)
+apiRouter.get('/analytics/alerts', analyticsController.getAlerts);
+
+// =================
+// NFC/RFID ROUTES (Absoluteness - Complete Identification)
+// =================
+
+// Verify NFC tag
+apiRouter.post('/nfc/verify', nfcController.verifyTag);
+
+// Register NFC tag to operator
+apiRouter.post('/nfc/register', nfcController.registerTag);
+
+// Unregister NFC tag
+apiRouter.post('/nfc/unregister', nfcController.unregisterTag);
+
+// Quick check-in with NFC
+apiRouter.post('/nfc/checkin', nfcController.quickCheckin);
 
 app.use('/api', apiRouter);
 
@@ -324,6 +320,13 @@ sequelize.authenticate()
       console.log(`🌍 Plataforma: ${process.platform}`);
       console.log(`📡 API disponible en: http://localhost:${PORT}/api`);
       console.log(`🖥️  Dashboard en: http://localhost:${PORT}`);
+      console.log('');
+      console.log('🔥 NEW INTEGRATIONS - More Consciousness & Absoluteness:');
+      console.log('   ✅ Cycle completion endpoint');
+      console.log('   ✅ Real-time location tracking');
+      console.log('   ✅ NFC/RFID identification system');
+      console.log('   ✅ Analytics & intelligent insights');
+      console.log('   ✅ Alert & anomaly detection');
       console.log('='.repeat(50));
     }).on('error', (err) => {
       if (err.code === 'EADDRINUSE') {

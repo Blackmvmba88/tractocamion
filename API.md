@@ -830,3 +830,487 @@ The system comes with default users for testing:
 
 **⚠️ IMPORTANT:** Change these passwords in production!
 
+---
+
+## 🔥 NEW INTEGRATIONS - More Consciousness & Absoluteness
+
+The following endpoints have been added to make the system more **conscious** (intelligent/aware) and **absolute** (complete/thorough).
+
+---
+
+### Cycle Management (Enhanced)
+
+#### Get All Cycles
+
+Get all cycles with optional filters.
+
+**Endpoint:** `GET /api/cycles`
+
+**Query Parameters:**
+- `status` (optional): Filter by status (`in_progress`, `completed`, `cancelled`)
+- `truck_id` (optional): Filter by truck ID
+- `operator_id` (optional): Filter by operator ID
+- `limit` (optional): Limit results (default: 50)
+
+**Response:**
+```json
+{
+  "success": true,
+  "cycles": [
+    {
+      "id": "CYC-L8K9J7-A1B2C3D4",
+      "truck": {
+        "id": "TRK-001",
+        "plate": "ABC-123",
+        "location": "Puerto - Muelle 3"
+      },
+      "operator": {
+        "id": 1,
+        "code": "OP-001",
+        "name": "Juan Pérez"
+      },
+      "start_time": "2026-01-31T10:00:00.000Z",
+      "end_time": "2026-01-31T10:45:00.000Z",
+      "duration_minutes": 45,
+      "earnings": 57.50,
+      "status": "completed",
+      "start_location": "Puerto - Muelle 3",
+      "end_location": "Patio - Zona A"
+    }
+  ],
+  "total": 1
+}
+```
+
+---
+
+#### Get Single Cycle
+
+Get detailed information about a specific cycle.
+
+**Endpoint:** `GET /api/cycles/:id`
+
+**Response:**
+```json
+{
+  "success": true,
+  "cycle": {
+    "id": "CYC-L8K9J7-A1B2C3D4",
+    "truck": { /* full truck object */ },
+    "operator": { /* full operator object */ },
+    "start_time": "2026-01-31T10:00:00.000Z",
+    "end_time": "2026-01-31T10:45:00.000Z",
+    "duration_minutes": 45,
+    "earnings": 57.50,
+    "status": "completed",
+    "start_location": "Puerto - Muelle 3",
+    "end_location": "Patio - Zona A"
+  }
+}
+```
+
+---
+
+#### Complete Cycle
+
+Mark a cycle as completed and calculate earnings.
+
+**Endpoint:** `POST /api/cycles/:id/complete`
+
+**Request Body:**
+```json
+{
+  "end_location": "Patio - Zona A"  // Optional
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Cycle completed successfully",
+  "cycle": {
+    "id": "CYC-L8K9J7-A1B2C3D4",
+    "truck_id": "TRK-001",
+    "operator_id": 1,
+    "start_time": "2026-01-31T10:00:00.000Z",
+    "end_time": "2026-01-31T10:45:00.000Z",
+    "duration_minutes": 45,
+    "earnings": 57.50,
+    "status": "completed"
+  },
+  "stats": {
+    "operator_total_cycles": 156,
+    "operator_total_earnings": 8934.50,
+    "truck_total_cycles": 203
+  }
+}
+```
+
+**Earnings Calculation:**
+- Base rate: $50/hour
+- Efficiency bonus: +$20 for cycles under 60 minutes
+- Example: 45 min = (45/60) * $50 + $20 = $57.50
+
+---
+
+#### Update Cycle Location
+
+Update the current location of an in-progress cycle (real-time tracking).
+
+**Endpoint:** `PATCH /api/cycles/:id/location`
+
+**Request Body:**
+```json
+{
+  "location": "En ruta - KM 5"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Location updated successfully",
+  "cycle": {
+    "id": "CYC-L8K9J7-A1B2C3D4",
+    "truck_id": "TRK-001",
+    "location": "En ruta - KM 5",
+    "updated_at": "2026-01-31T10:15:00.000Z"
+  }
+}
+```
+
+---
+
+### Analytics & Intelligence (Consciousness)
+
+#### Dashboard Analytics
+
+Get comprehensive dashboard analytics with KPIs and performance metrics.
+
+**Endpoint:** `GET /api/analytics/dashboard`
+
+**Response:**
+```json
+{
+  "success": true,
+  "timestamp": "2026-01-31T15:30:00.000Z",
+  "summary": {
+    "trucks": {
+      "total": 20,
+      "active": 12,
+      "resting": 7,
+      "maintenance": 1
+    },
+    "operators": {
+      "total": 30,
+      "working": 12,
+      "resting": 5,
+      "available": 10,
+      "offline": 3
+    },
+    "cycles": {
+      "total": 2456,
+      "in_progress": 12,
+      "completed": 2430,
+      "cancelled": 14
+    }
+  },
+  "today": {
+    "cycles_count": 45,
+    "avg_duration_minutes": 52,
+    "total_earnings": 2587.50
+  },
+  "performance": {
+    "avg_cycle_time_minutes": 54,
+    "efficiency_score": 78,
+    "target_time_minutes": 55
+  }
+}
+```
+
+---
+
+#### Operator Performance Metrics
+
+Get detailed performance metrics for all operators.
+
+**Endpoint:** `GET /api/analytics/operators`
+
+**Response:**
+```json
+{
+  "success": true,
+  "operators": [
+    {
+      "operator": {
+        "id": 1,
+        "code": "OP-001",
+        "name": "Juan Pérez",
+        "status": "available"
+      },
+      "stats": {
+        "total_cycles": 156,
+        "total_hours": 134.5,
+        "total_earnings": 8934.50,
+        "avg_cycle_time": 52,
+        "best_cycle_time": 38,
+        "avg_earnings_per_cycle": 57.27
+      }
+    }
+  ],
+  "total": 30
+}
+```
+
+---
+
+#### Truck Utilization Metrics
+
+Get utilization and revenue metrics for all trucks.
+
+**Endpoint:** `GET /api/analytics/trucks`
+
+**Response:**
+```json
+{
+  "success": true,
+  "trucks": [
+    {
+      "truck": {
+        "id": "TRK-001",
+        "plate": "ABC-123",
+        "status": "active"
+      },
+      "stats": {
+        "total_cycles": 203,
+        "avg_cycle_time": 53,
+        "total_revenue": 11621.00,
+        "revenue_per_cycle": 57.24
+      }
+    }
+  ],
+  "total": 20
+}
+```
+
+---
+
+#### Alerts & Anomalies
+
+Get intelligent alerts about potential issues (fatigue, delays, maintenance).
+
+**Endpoint:** `GET /api/analytics/alerts`
+
+**Response:**
+```json
+{
+  "success": true,
+  "alerts": [
+    {
+      "type": "fatigue_risk",
+      "severity": "high",
+      "entity": "operator",
+      "entity_id": "OP-005",
+      "message": "Operator OP-005 (Carlos López) has been working for over 8 hours",
+      "recommendation": "Assign operator to rest period",
+      "timestamp": "2026-01-31T15:30:00.000Z"
+    },
+    {
+      "type": "delayed_cycle",
+      "severity": "medium",
+      "entity": "cycle",
+      "entity_id": "CYC-ABC123",
+      "message": "Cycle CYC-ABC123 has been running for 125 minutes",
+      "details": {
+        "truck": "ABC-123",
+        "operator": "OP-008",
+        "duration_minutes": 125
+      },
+      "recommendation": "Check for delays or issues",
+      "timestamp": "2026-01-31T15:30:00.000Z"
+    }
+  ],
+  "total": 2,
+  "by_severity": {
+    "high": 1,
+    "medium": 1,
+    "low": 0
+  }
+}
+```
+
+**Alert Types:**
+- `fatigue_risk`: Operator working over 8 hours
+- `delayed_cycle`: Cycle running over 2 hours
+- `maintenance`: Truck in maintenance
+- `extended_rest`: Operator resting over 4 hours
+
+---
+
+### NFC/RFID Integration (Absoluteness)
+
+#### Verify NFC Tag
+
+Verify an NFC tag and get operator information.
+
+**Endpoint:** `POST /api/nfc/verify`
+
+**Request Body:**
+```json
+{
+  "tag_id": "NFC-A1B2C3D4E5"
+}
+```
+
+**Success Response:**
+```json
+{
+  "success": true,
+  "verified": true,
+  "operator": {
+    "id": 1,
+    "code": "OP-001",
+    "name": "Juan Pérez",
+    "status": "available",
+    "total_cycles": 156,
+    "total_earnings": 8934.50
+  },
+  "message": "Welcome, Juan Pérez!"
+}
+```
+
+**Error Response (tag not found):**
+```json
+{
+  "success": false,
+  "verified": false,
+  "error": "NFC tag not registered",
+  "tag_id": "NFC-A1B2C3D4E5"
+}
+```
+
+---
+
+#### Register NFC Tag
+
+Register an NFC tag to an operator.
+
+**Endpoint:** `POST /api/nfc/register`
+
+**Request Body:**
+```json
+{
+  "operator_id": 1,
+  "tag_id": "NFC-A1B2C3D4E5"
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "NFC tag registered successfully to operator OP-001",
+  "operator": {
+    "id": 1,
+    "code": "OP-001",
+    "name": "Juan Pérez",
+    "nfc_tag_id": "NFC-A1B2C3D4E5"
+  }
+}
+```
+
+---
+
+#### Unregister NFC Tag
+
+Remove NFC tag from an operator.
+
+**Endpoint:** `POST /api/nfc/unregister`
+
+**Request Body:**
+```json
+{
+  "operator_id": 1
+}
+```
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "NFC tag unregistered from operator OP-001",
+  "operator": {
+    "id": 1,
+    "code": "OP-001",
+    "name": "Juan Pérez"
+  }
+}
+```
+
+---
+
+#### Quick Check-in with NFC
+
+Verify operator via NFC and check readiness for cycle.
+
+**Endpoint:** `POST /api/nfc/checkin`
+
+**Request Body:**
+```json
+{
+  "tag_id": "NFC-A1B2C3D4E5",
+  "truck_id": "TRK-001"
+}
+```
+
+**Success Response:**
+```json
+{
+  "success": true,
+  "verified": true,
+  "ready_for_cycle": true,
+  "operator": {
+    "id": 1,
+    "code": "OP-001",
+    "name": "Juan Pérez",
+    "status": "available"
+  },
+  "message": "Operator Juan Pérez verified and ready to start cycle",
+  "next_step": "POST /api/cycles with operator_id=1 and truck_id=TRK-001"
+}
+```
+
+**Error Response (operator resting):**
+```json
+{
+  "success": false,
+  "error": "Operator OP-001 is on mandatory rest period",
+  "operator": {
+    "code": "OP-001",
+    "name": "Juan Pérez",
+    "status": "resting"
+  }
+}
+```
+
+---
+
+## Integration Benefits
+
+These new endpoints provide:
+
+### Consciousness (Intelligence & Awareness)
+- **Real-time monitoring**: Track cycles, locations, and performance
+- **Predictive insights**: Identify fatigue risks and delays early
+- **Performance metrics**: Comprehensive analytics for optimization
+- **Alert system**: Proactive notifications for anomalies
+
+### Absoluteness (Completeness & Thoroughness)
+- **Cycle lifecycle**: Create → Track → Complete workflow
+- **NFC integration**: Frictionless operator identification
+- **Earnings calculation**: Automatic payment tracking
+- **Data integrity**: Validations and status checks at every step
+
+
