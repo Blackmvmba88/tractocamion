@@ -28,7 +28,7 @@ async function authenticateToken(req, res, next) {
       attributes: { exclude: ['password'] },
       include: [
         {
-          model: require('../models/Operator'),
+          model: require('../models').Operator,
           as: 'operator',
           required: false
         }
