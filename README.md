@@ -50,12 +50,24 @@ La primera fase de Tractocamión 4.0 está lista: una aplicación web funcional 
 - ✅ **Monitoreo Automatizado** - Scripts para chequeo automático de procesos
 - ✅ **Interfaz Responsiva** - Funciona en desktop y móvil
 - ✅ **Documentación Completa** - Guías de instalación, API, y seguridad
+- ✅ **Autenticación JWT** - Sistema completo de autenticación con roles y tokens
+- ✅ **Base de Datos PostgreSQL** - Integración con base de datos real con migraciones
 
 ### 🚀 Empezar Ahora
 
 ```bash
 # Instalar dependencias
 npm install
+
+# Configurar base de datos (PostgreSQL)
+# Copiar .env.example a .env y configurar DATABASE_URL
+cp .env.example .env
+
+# Ejecutar migraciones
+npm run db:migrate
+
+# Poblar base de datos con datos de prueba
+npm run db:seed
 
 # Iniciar aplicación
 npm start
@@ -67,6 +79,13 @@ start.bat       # Windows
 
 **Acceder al Dashboard:** http://localhost:3000
 
+**Credenciales de prueba:**
+- Admin: `admin` / `Admin123!`
+- Gerente: `gerente1` / `Gerente123!`
+- Operador: `operador1` / `Operador123!`
+
+⚠️ **IMPORTANTE:** Cambiar todas las contraseñas en producción
+
 ### 📚 Documentación
 
 - **[QUICKSTART.md](QUICKSTART.md)** - Guía rápida de inicio
@@ -76,8 +95,8 @@ start.bat       # Windows
 
 ### 🛠️ Próximos Pasos
 
-- [ ] Integración con base de datos real
-- [ ] Sistema de autenticación JWT
+- [x] Integración con base de datos real
+- [x] Sistema de autenticación JWT
 - [ ] Integración NFC/RFID
 - [ ] Módulo de pagos inmediatos
 - [ ] Machine Learning para optimización

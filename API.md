@@ -10,6 +10,185 @@ http://localhost:3000/api
 
 ## Endpoints
 
+### Authentication
+
+All authentication endpoints are public except for logout, profile, and password change which require a valid JWT token.
+
+#### Register New User
+
+Register a new user account (public registration is limited to 'operador' role).
+
+**Endpoint:** `POST /api/auth/register`
+
+**Request Body:**
+```json
+{
+  "username": "newuser",
+  "email": "user@example.com",
+  "password": "SecurePass123!",
+  "operator_id": 1  // Optional: Link to existing operator
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Usuario registrado exitosamente",
+  "user": {
+    "id": 7,
+    "username": "newuser",
+    "email": "user@example.com",
+    "role": "operador",
+    "operator_id": 1
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresIn": 3600
+}
+```
+
+---
+
+#### Login
+
+Authenticate with username/email and password.
+
+**Endpoint:** `POST /api/auth/login`
+
+**Request Body:**
+```json
+{
+  "login": "admin",  // Username or email
+  "password": "Admin123!"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Login exitoso",
+  "user": {
+    "id": 1,
+    "username": "admin",
+    "email": "admin@tractocamion.com",
+    "role": "admin",
+    "operator_id": null,
+    "operator": null
+  },
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresIn": 3600
+}
+```
+
+**Error Responses:**
+- `401 Unauthorized`: Invalid credentials
+- `423 Locked`: Account locked due to failed login attempts
+
+---
+
+#### Refresh Token
+
+Get a new access token using a refresh token.
+
+**Endpoint:** `POST /api/auth/refresh`
+
+**Request Body:**
+```json
+{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Token renovado exitosamente",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expiresIn": 3600
+}
+```
+
+---
+
+#### Logout
+
+Invalidate the current access token (requires authentication).
+
+**Endpoint:** `POST /api/auth/logout`
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "message": "Logout exitoso"
+}
+```
+
+---
+
+#### Get Current User Profile
+
+Get the profile of the currently authenticated user (requires authentication).
+
+**Endpoint:** `GET /api/auth/me`
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "id": 1,
+  "username": "admin",
+  "email": "admin@tractocamion.com",
+  "role": "admin",
+  "operator_id": null,
+  "is_active": true,
+  "last_login": "2026-01-31T08:40:42.711Z",
+  "createdAt": "2026-01-31T08:39:07.052Z",
+  "operator": null
+}
+```
+
+---
+
+#### Change Password
+
+Change the password for the current user (requires authentication).
+
+**Endpoint:** `POST /api/auth/change-password`
+
+**Headers:**
+```
+Authorization: Bearer <token>
+```
+
+**Request Body:**
+```json
+{
+  "currentPassword": "OldPass123!",
+  "newPassword": "NewSecurePass456!"
+}
+```
+
+**Response:**
+```json
+{
+  "message": "Contraseña actualizada exitosamente"
+}
+```
+
+---
+
+### Data Endpoints
+
 ### Health Check
 
 Check if the server is running and get platform information.

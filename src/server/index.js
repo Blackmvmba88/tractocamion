@@ -66,6 +66,60 @@ apiRouter.get('/health', (req, res) => {
   });
 });
 
+// =================
+// AUTHENTICATION ROUTES (Public)
+// =================
+
+// Register new user (public registration for operators only)
+apiRouter.post('/auth/register', 
+  registerValidation,
+  handleValidationErrors,
+  authController.register
+);
+
+// Login
+apiRouter.post('/auth/login',
+  loginLimiter,
+  loginValidation,
+  handleValidationErrors,
+  authController.login
+);
+
+// Refresh access token
+apiRouter.post('/auth/refresh',
+  refreshTokenValidation,
+  handleValidationErrors,
+  authController.refresh
+);
+
+// =================
+// PROTECTED ROUTES (Authentication required)
+// =================
+
+// Logout (requires valid token)
+apiRouter.post('/auth/logout',
+  authenticateToken,
+  authController.logout
+);
+
+// Get current user profile
+apiRouter.get('/auth/me',
+  authenticateToken,
+  authController.me
+);
+
+// Change password
+apiRouter.post('/auth/change-password',
+  authenticateToken,
+  changePasswordValidation,
+  handleValidationErrors,
+  authController.changePassword
+);
+
+// =================
+// DATA ROUTES (Public for now, can be protected later)
+// =================
+
 // Process monitoring endpoint
 apiRouter.get('/processes', async (req, res) => {
   try {
