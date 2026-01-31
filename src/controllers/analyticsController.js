@@ -4,6 +4,7 @@ const db = require('../models');
 const { Cycle, Truck, Operator } = db;
 const { Op } = require('sequelize');
 const sequelize = db.sequelize;
+const businessConfig = require('../config/businessConfig');
 
 /**
  * Analytics Controller - Provides intelligent insights and metrics
@@ -146,7 +147,7 @@ exports.getDashboard = async (req, res) => {
           ? Math.round(avgCycleTime.get('avg'))
           : 0,
         efficiency_score: efficiencyScore,
-        target_time_minutes: 55 // From README.md - target is 55 min
+        target_time_minutes: businessConfig.performance.TARGET_CYCLE_TIME_MINUTES
       }
     });
   } catch (error) {
@@ -306,12 +307,14 @@ exports.getAlerts = async (req, res) => {
   try {
     const alerts = [];
     
+    const { FATIGUE_THRESHOLD_HOURS, DELAYED_CYCLE_THRESHOLD_HOURS, EXTENDED_REST_THRESHOLD_HOURS } = businessConfig.alerts;
+    
     // Check for operators working too long without rest
     const longWorkingOperators = await Operator.findAll({
       where: {
         status: 'working',
         shift_start: {
-          [Op.lt]: new Date(Date.now() - 8 * 60 * 60 * 1000) // 8 hours ago
+          [Op.lt]: new Date(Date.now() - FATIGUE_THRESHOLD_HOURS * 60 * 60 * 1000)
         }
       }
     });
@@ -322,7 +325,7 @@ exports.getAlerts = async (req, res) => {
         severity: 'high',
         entity: 'operator',
         entity_id: op.code,
-        message: `Operator ${op.code} (${op.name}) has been working for over 8 hours`,
+        message: `Operator ${op.code} (${op.name}) has been working for over ${FATIGUE_THRESHOLD_HOURS} hours`,
         recommendation: 'Assign operator to rest period',
         timestamp: new Date().toISOString()
       });
@@ -333,7 +336,7 @@ exports.getAlerts = async (req, res) => {
       where: {
         status: 'in_progress',
         start_time: {
-          [Op.lt]: new Date(Date.now() - 2 * 60 * 60 * 1000) // 2 hours ago
+          [Op.lt]: new Date(Date.now() - DELAYED_CYCLE_THRESHOLD_HOURS * 60 * 60 * 1000)
         }
       },
       include: [
@@ -382,7 +385,7 @@ exports.getAlerts = async (req, res) => {
       where: {
         status: 'resting',
         updatedAt: {
-          [Op.lt]: new Date(Date.now() - 4 * 60 * 60 * 1000) // 4 hours ago
+          [Op.lt]: new Date(Date.now() - EXTENDED_REST_THRESHOLD_HOURS * 60 * 60 * 1000)
         }
       }
     });
@@ -393,7 +396,7 @@ exports.getAlerts = async (req, res) => {
         severity: 'low',
         entity: 'operator',
         entity_id: op.code,
-        message: `Operator ${op.code} has been resting for over 4 hours`,
+        message: `Operator ${op.code} has been resting for over ${EXTENDED_REST_THRESHOLD_HOURS} hours`,
         recommendation: 'Check operator availability',
         timestamp: new Date().toISOString()
       });

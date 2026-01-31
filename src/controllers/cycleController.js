@@ -4,6 +4,7 @@ const db = require('../models');
 const { Cycle, Truck, Operator } = db;
 const { v4: uuidv4 } = require('uuid');
 const { Op } = require('sequelize');
+const businessConfig = require('../config/businessConfig');
 
 /**
  * Cycle Controller - Handles cycle operations with intelligence and completeness
@@ -20,16 +21,14 @@ function generateCycleId() {
 // Helper function to calculate earnings based on duration
 // Formula: Base rate per hour + efficiency bonus
 function calculateEarnings(durationMinutes) {
-  const BASE_RATE_PER_HOUR = 50; // $50 per hour base
-  const EFFICIENCY_BONUS_THRESHOLD = 60; // Under 60 min = bonus
-  const EFFICIENCY_BONUS = 20; // $20 bonus for fast cycles
+  const { BASE_RATE_PER_HOUR, EFFICIENCY_BONUS_THRESHOLD_MINUTES, EFFICIENCY_BONUS_AMOUNT } = businessConfig.earnings;
   
   const hours = durationMinutes / 60;
   let earnings = BASE_RATE_PER_HOUR * hours;
   
   // Add efficiency bonus for fast completion
-  if (durationMinutes < EFFICIENCY_BONUS_THRESHOLD) {
-    earnings += EFFICIENCY_BONUS;
+  if (durationMinutes < EFFICIENCY_BONUS_THRESHOLD_MINUTES) {
+    earnings += EFFICIENCY_BONUS_AMOUNT;
   }
   
   return Math.round(earnings * 100) / 100; // Round to 2 decimals
