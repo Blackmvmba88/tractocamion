@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Login - Tractocamión 4.0</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/themes.css">
+    <link rel="stylesheet" href="/auth-styles.css">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <h1>🚛 Tractocamión 4.0</h1>
+                <h2>Iniciar Sesión</h2>
+            </div>
+            
+            <form id="login-form" class="auth-form">
+                <div class="form-group">
+                    <label for="login">Usuario o Email</label>
+                    <input type="text" id="login" name="login" required autocomplete="username">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Contraseña</label>
+                    <input type="password" id="password" name="password" required autocomplete="current-password">
+                </div>
+                
+                <div id="error-message" class="error-box" style="display:none;"></div>
+                
+                <button type="submit" class="btn-primary btn-auth">Entrar</button>
+            </form>
+            
+            <div class="auth-footer">
+                <p>¿No tienes cuenta? <a href="/register.html">Regístrate aquí</a></p>
+            </div>
+            
+            <div class="auth-demo-credentials">
+                <h3>🔑 Credenciales de Prueba</h3>
+                <div class="demo-creds">
+                    <p><strong>Admin:</strong> admin / Admin123!</p>
+                    <p><strong>Gerente:</strong> gerente1 / Gerente123!</p>
+                    <p><strong>Operador:</strong> operador1 / Operador123!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚛 Tractocamión 4.0 - Dashboard</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/themes.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-top">
+                <div>
+                    <h1>🚛 Tractocamión 4.0</h1>
+                    <p class="subtitle">Sistema Integral de Gestión Logística</p>
+                </div>
+                <div id="user-info" class="user-info" style="display: none;">
+                    <p class="user-meta">
+                        <strong id="user-name"></strong> (<span id="user-role"></span>)
+                    </p>
+                    <button id="logout-btn" class="logout-btn">
+                        🚪 Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+            <div id="platform-info" class="platform-badge"></div>
+            <div class="header-actions">
+                <a href="/ejemplos.html" class="btn-ejemplos">📊 Ver Ejemplos de Controles GPS/Velocidad/Peso/Carga</a>
+                <a href="/login.html" id="login-link" class="btn-ejemplos secondary-action">🔐 Iniciar Sesión</a>
+            </div>
+        </header>
+
+        <section class="monitor-strip">
+            <div class="monitor-status">
+                <span id="connection-indicator" class="connection-indicator loading"></span>
+                <div>
+                    <p class="monitor-label">Estado del monitoreo</p>
+                    <p id="monitor-message" class="monitor-message">Conectando con la telemetría...</p>
+                </div>
+            </div>
+            <div class="monitor-meta">
+                <div class="meta-pill">
+                    <span class="meta-pill-label">Frecuencia</span>
+                    <strong id="refresh-mode">5s visible</strong>
+                </div>
+                <div class="meta-pill">
+                    <span class="meta-pill-label">Última lectura</span>
+                    <strong id="last-update">Sin datos aún</strong>
+                </div>
+            </div>
+        </section>
+
+        <div class="stats-grid">
+            <div class="stat-card" data-stat-card="throughput">
+                <h3>Throughput Actual</h3>
+                <div class="stat-value" id="throughput">20</div>
+                <div class="stat-label" id="throughput-label">camiones/día</div>
+                <div class="stat-trend" id="throughput-trend">Esperando datos...</div>
+            </div>
+            <div class="stat-card" data-stat-card="avg-time">
+                <h3>Tiempo Promedio</h3>
+                <div class="stat-value" id="avg-time">55</div>
+                <div class="stat-label" id="avg-time-label">minutos/ciclo</div>
+                <div class="stat-trend" id="avg-time-trend">Calculando rendimiento...</div>
+            </div>
+            <div class="stat-card" data-stat-card="active-operators">
+                <h3>Operadores Activos</h3>
+                <div class="stat-value" id="active-operators">3</div>
+                <div class="stat-label">de <span id="operators-total">5</span> totales</div>
+                <div class="stat-trend" id="operators-trend">Cobertura del turno</div>
+            </div>
+            <div class="stat-card" data-stat-card="active-trucks">
+                <h3>Tractores en Servicio</h3>
+                <div class="stat-value" id="active-trucks">3</div>
+                <div class="stat-label">de <span id="trucks-total">4</span> totales</div>
+                <div class="stat-trend" id="trucks-trend">Disponibilidad de flota</div>
+            </div>
+        </div>
+
+        <div class="section" data-section="processes">
+            <div class="section-heading">
+                <h2>📊 Monitoreo de Procesos</h2>
+                <span id="processes-status" class="section-status loading">Cargando...</span>
+            </div>
+            <div id="processes-container" class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Proceso</th>
+                            <th>Estado</th>
+                            <th>Tiempo Activo</th>
+                            <th>CPU</th>
+                            <th>Memoria</th>
+                        </tr>
+                    </thead>
+                    <tbody id="processes-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section" data-section="trucks">
+            <div class="section-heading">
+                <h2>🚛 Estado de Tractores</h2>
+                <span id="trucks-status" class="section-status loading">Cargando...</span>
+            </div>
+            <div id="trucks-container" class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Placa</th>
+                            <th>Estado</th>
+                            <th>Ubicación</th>
+                            <th>Operador</th>
+                            <th>Tiempo de Ciclo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trucks-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section" data-section="operators">
+            <div class="section-heading">
+                <h2>👷 Estado de Operadores</h2>
+                <span id="operators-status" class="section-status loading">Cargando...</span>
+            </div>
+            <div id="operators-container" class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Nombre</th>
+                            <th>Estado</th>
+                            <th>Horas Trabajadas</th>
+                            <th>Ciclos</th>
+                            <th>Ingresos</th>
+                        </tr>
+                    </thead>
+                    <tbody id="operators-table"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="section auto-update">
+            <p>🔄 Actualización inteligente: 5s visible, 30s en segundo plano</p>
+            <p id="update-summary">Las métricas se refinan con datos reales y pausas más largas cuando la pestaña está en segundo plano.</p>
+        </div>
+    </div>
+
+    <script src="/auth.js"></script>
+    <script src="/theme-switcher.js"></script>
+    <script src="/app.js"></script>
+</body>
+</html>
