@@ -7,6 +7,7 @@
     "start": "node src/server/index.js",
     "dev": "node src/server/index.js",
     "monitor": "node src/scripts/process-monitor.js",
+    "test:integrations": "bash ./test-integrations.sh",
     "db:migrate": "sequelize-cli db:migrate",
     "db:seed": "sequelize-cli db:seed:all",
     "db:reset": "sequelize-cli db:migrate:undo:all && npm run db:migrate && npm run db:seed",
