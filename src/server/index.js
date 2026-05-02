@@ -6,6 +6,8 @@ const path = require('path');
 const sequelize = require('../config/database');
 const db = require('../models');
 const { Truck, Operator, Cycle, Process } = db;
+const cache = require('../utils/memoryCache');
+const businessConfig = require('../config/businessConfig');
 
 // Import middleware
 const { apiLimiter, loginLimiter, sanitizeInput } = require('../middleware/security');
@@ -27,6 +29,7 @@ const nfcController = require('../controllers/nfcController');
 const app = express();
 const PORT = process.env.PORT || 3000;
 const publicDir = path.join(__dirname, '../public');
+const dashboardCacheTtlMs = businessConfig.cache.DASHBOARD_TTL_MS || 5000;
 
 function parseIntegerEnv(value, fallback) {
   const parsed = Number.parseInt(value, 10);
@@ -48,6 +51,18 @@ function parseTrustProxy(value) {
 
   const numericValue = Number.parseInt(value, 10);
   return Number.isInteger(numericValue) ? numericValue : value;
+}
+
+function buildListParams(query, allowedStatuses) {
+  const defaultLimit = businessConfig.pagination.DEFAULT_LIMIT || 50;
+  const maxLimit = businessConfig.pagination.MAX_LIMIT || 100;
+  const limit = Math.min(Math.max(parseIntegerEnv(query.limit, defaultLimit), 1), maxLimit);
+  const offset = Math.max(parseIntegerEnv(query.offset, 0), 0);
+  const status = typeof query.status === 'string' && allowedStatuses.includes(query.status)
+    ? query.status
+    : null;
+
+  return { limit, offset, status };
 }
 
 const jsonLimit = process.env.JSON_BODY_LIMIT || '256kb';
@@ -169,23 +184,27 @@ apiRouter.post('/auth/change-password',
 // Process monitoring endpoint
 apiRouter.get('/processes', async (req, res) => {
   try {
-    const processes = await Process.findAll({
-      attributes: ['name', 'status', 'uptime_seconds', 'cpu_percent', 'memory_mb']
+    const payload = await cache.wrap('dashboard:processes', dashboardCacheTtlMs, async () => {
+      const processes = await Process.findAll({
+        attributes: ['name', 'status', 'uptime_seconds', 'cpu_percent', 'memory_mb'],
+        order: [['name', 'ASC']]
+      });
+
+      const formattedProcesses = processes.map(p => ({
+        name: p.name,
+        status: p.status,
+        uptime: formatUptime(p.uptime_seconds),
+        cpu: `${p.cpu_percent}%`,
+        memory: `${p.memory_mb}MB`
+      }));
+
+      return {
+        processes: formattedProcesses,
+        timestamp: new Date().toISOString()
+      };
     });
-    
-    // Format the data to match the frontend expectation
-    const formattedProcesses = processes.map(p => ({
-      name: p.name,
-      status: p.status,
-      uptime: formatUptime(p.uptime_seconds),
-      cpu: `${p.cpu_percent}%`,
-      memory: `${p.memory_mb}MB`
-    }));
-    
-    res.json({
-      processes: formattedProcesses,
-      timestamp: new Date().toISOString()
-    });
+
+    res.json(payload);
   } catch (error) {
     console.error('Error fetching processes:', error);
     res.status(500).json({ 
@@ -198,30 +217,45 @@ apiRouter.get('/processes', async (req, res) => {
 // Truck status endpoint
 apiRouter.get('/trucks', async (req, res) => {
   try {
-    const trucks = await Truck.findAll({
-      attributes: ['id', 'plate', 'status', 'location', 'cycle_start_time'],
-      include: [{ 
-        model: Operator, 
-        as: 'operator',
-        attributes: ['name']
-      }]
+    const { limit, offset, status } = buildListParams(req.query, ['active', 'resting', 'maintenance']);
+    const cacheKey = `dashboard:trucks:${status || 'all'}:${limit}:${offset}`;
+
+    const payload = await cache.wrap(cacheKey, dashboardCacheTtlMs, async () => {
+      const where = status ? { status } : {};
+      const { rows: trucks, count: total } = await Truck.findAndCountAll({
+        where,
+        attributes: ['id', 'plate', 'status', 'location', 'cycle_start_time'],
+        include: [{
+          model: Operator,
+          as: 'operator',
+          attributes: ['name']
+        }],
+        order: [['id', 'ASC']],
+        limit,
+        offset
+      });
+
+      const formattedTrucks = trucks.map(t => ({
+        id: t.id,
+        plate: t.plate,
+        status: t.status,
+        location: t.location,
+        operator: t.operator ? t.operator.name : null,
+        cycle_time: t.cycle_start_time ? calculateCycleTime(t.cycle_start_time) : null
+      }));
+
+      const active = await Truck.count({ where: { status: 'active' } });
+
+      return {
+        trucks: formattedTrucks,
+        total,
+        active,
+        limit,
+        offset
+      };
     });
-    
-    // Format the data to match the frontend expectation
-    const formattedTrucks = trucks.map(t => ({
-      id: t.id,
-      plate: t.plate,
-      status: t.status,
-      location: t.location,
-      operator: t.operator ? t.operator.name : null,
-      cycle_time: t.cycle_start_time ? calculateCycleTime(t.cycle_start_time) : null
-    }));
-    
-    res.json({
-      trucks: formattedTrucks,
-      total: trucks.length,
-      active: trucks.filter(t => t.status === 'active').length
-    });
+
+    res.json(payload);
   } catch (error) {
     console.error('Error fetching trucks:', error);
     res.status(500).json({ 
@@ -234,25 +268,40 @@ apiRouter.get('/trucks', async (req, res) => {
 // Operators endpoint
 apiRouter.get('/operators', async (req, res) => {
   try {
-    const operators = await Operator.findAll({
-      attributes: ['code', 'name', 'status', 'total_hours', 'total_cycles', 'total_earnings']
+    const { limit, offset, status } = buildListParams(req.query, ['working', 'resting', 'available', 'offline']);
+    const cacheKey = `dashboard:operators:${status || 'all'}:${limit}:${offset}`;
+
+    const payload = await cache.wrap(cacheKey, dashboardCacheTtlMs, async () => {
+      const where = status ? { status } : {};
+      const { rows: operators, count: total } = await Operator.findAndCountAll({
+        where,
+        attributes: ['code', 'name', 'status', 'total_hours', 'total_cycles', 'total_earnings'],
+        order: [['code', 'ASC']],
+        limit,
+        offset
+      });
+
+      const formattedOperators = operators.map(o => ({
+        id: o.code,
+        name: o.name,
+        status: o.status,
+        hours: `${o.total_hours}h`,
+        cycles: o.total_cycles,
+        earnings: `$${o.total_earnings}`
+      }));
+
+      const available = await Operator.count({ where: { status: 'available' } });
+
+      return {
+        operators: formattedOperators,
+        total,
+        available,
+        limit,
+        offset
+      };
     });
-    
-    // Format the data to match the frontend expectation
-    const formattedOperators = operators.map(o => ({
-      id: o.code,
-      name: o.name,
-      status: o.status,
-      hours: `${o.total_hours}h`,
-      cycles: o.total_cycles,
-      earnings: `$${o.total_earnings}`
-    }));
-    
-    res.json({
-      operators: formattedOperators,
-      total: operators.length,
-      available: operators.filter(o => o.status === 'available').length
-    });
+
+    res.json(payload);
   } catch (error) {
     console.error('Error fetching operators:', error);
     res.status(500).json({ 

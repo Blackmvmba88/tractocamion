@@ -144,6 +144,7 @@ exports.createCycle = async (req, res) => {
     }
 
     cache.invalidate('analytics:');
+    cache.invalidate('dashboard:');
     
     res.status(201).json(newCycle.body);
   } catch (error) {
@@ -257,6 +258,7 @@ exports.completeCycle = async (req, res) => {
     }
 
     cache.invalidate('analytics:');
+    cache.invalidate('dashboard:');
 
     res.json(result.body);
   } catch (error) {
@@ -307,6 +309,7 @@ exports.updateLocation = async (req, res) => {
     await cycle.truck.update({ location });
 
     cache.invalidate('analytics:');
+    cache.invalidate('dashboard:');
     
     res.json({
       success: true,

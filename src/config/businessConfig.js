@@ -28,5 +28,11 @@ module.exports = {
   pagination: {
     DEFAULT_LIMIT: parseInt(process.env.DEFAULT_LIMIT || '50'),
     MAX_LIMIT: parseInt(process.env.MAX_LIMIT || '100')
+  },
+
+  // API and dashboard cache defaults
+  cache: {
+    DASHBOARD_TTL_MS: parseInt(process.env.DASHBOARD_CACHE_TTL_MS || '5000'),
+    ANALYTICS_TTL_MS: parseInt(process.env.ANALYTICS_CACHE_TTL_MS || '15000')
   }
 };

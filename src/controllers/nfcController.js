@@ -102,6 +102,7 @@ exports.registerTag = async (req, res) => {
     await operator.update({ nfc_tag_id: tag_id });
 
     cache.invalidate('analytics:');
+    cache.invalidate('dashboard:');
     
     res.json({
       success: true,
@@ -156,6 +157,7 @@ exports.unregisterTag = async (req, res) => {
     await operator.update({ nfc_tag_id: null });
 
     cache.invalidate('analytics:');
+    cache.invalidate('dashboard:');
     
     res.json({
       success: true,
