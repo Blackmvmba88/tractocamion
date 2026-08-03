@@ -17,6 +17,8 @@ const {
   loginValidation, 
   changePasswordValidation,
   refreshTokenValidation,
+  adminCreateUserValidation,
+  adminUpdateUserValidation,
   handleValidationErrors 
 } = require('../middleware/validation');
 
@@ -25,6 +27,7 @@ const authController = require('../controllers/authController');
 const cycleController = require('../controllers/cycleController');
 const analyticsController = require('../controllers/analyticsController');
 const nfcController = require('../controllers/nfcController');
+const userController = require('../controllers/userController');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -184,6 +187,26 @@ apiRouter.post('/auth/change-password',
   changePasswordValidation,
   handleValidationErrors,
   authController.changePassword
+);
+
+// =================
+// USER ADMINISTRATION (admin only; accounts are never deleted here)
+// =================
+
+apiRouter.get('/users', authenticateToken, requireRole('admin'), userController.listUsers);
+apiRouter.post('/users',
+  authenticateToken,
+  requireRole('admin'),
+  adminCreateUserValidation,
+  handleValidationErrors,
+  userController.createUser
+);
+apiRouter.patch('/users/:id',
+  authenticateToken,
+  requireRole('admin'),
+  adminUpdateUserValidation,
+  handleValidationErrors,
+  userController.updateUser
 );
 
 // =================

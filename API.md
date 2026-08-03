@@ -12,11 +12,58 @@ http://localhost:3000/api
 
 ### Authentication
 
-All authentication endpoints are public except for logout, profile, and password change which require a valid JWT token.
+Login and token refresh are public. Public registration is disabled by default; logout, profile and password change require a valid JWT token.
 
 #### Register New User
 
-Register a new user account (public registration is limited to 'operador' role).
+Public registration responds with `403` unless `ALLOW_PUBLIC_REGISTRATION=true`. The recommended flow is the admin-only user API below.
+
+### Administración de usuarios
+
+Estas rutas requieren un JWT con rol `admin`. Ninguna ruta elimina cuentas; las cuentas se desactivan de forma reversible.
+
+#### Listar usuarios
+
+```http
+GET /api/users
+Authorization: Bearer <admin-token>
+```
+
+La respuesta excluye contraseñas y hashes e incluye el operador vinculado cuando existe.
+
+#### Crear usuario
+
+```http
+POST /api/users
+Authorization: Bearer <admin-token>
+Content-Type: application/json
+
+{
+  "username": "operador8",
+  "email": "operador8@example.com",
+  "password": "Temporal8A",
+  "role": "operador",
+  "operator_id": 8
+}
+```
+
+Cada cuenta con rol `operador` requiere un operador existente y un operador no puede vincularse a más de una cuenta.
+
+#### Cambiar rol, vínculo o estado
+
+```http
+PATCH /api/users/:id
+Authorization: Bearer <admin-token>
+Content-Type: application/json
+
+{
+  "role": "operador",
+  "operator_id": 8,
+  "is_active": false
+}
+```
+
+Todos los campos son opcionales. El sistema rechaza desactivar o degradar al último administrador activo.
 
 **Endpoint:** `POST /api/auth/register`
 
@@ -1312,5 +1359,4 @@ These new endpoints provide:
 - **NFC integration**: Frictionless operator identification
 - **Earnings calculation**: Automatic payment tracking
 - **Data integrity**: Validations and status checks at every step
-
 

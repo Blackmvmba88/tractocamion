@@ -20,7 +20,8 @@ const protectedRoutes = [
   ['/nfc/register', "authenticateToken, requireRole('admin', 'gerente')"],
   ['/nfc/unregister', "authenticateToken, requireRole('admin', 'gerente')"],
   ['/nfc/verify', 'authenticateToken'],
-  ['/nfc/checkin', 'authenticateToken']
+  ['/nfc/checkin', 'authenticateToken'],
+  ['/users', "authenticateToken, requireRole('admin')"]
 ];
 
 test('every operational route keeps its required authorization middleware', () => {
