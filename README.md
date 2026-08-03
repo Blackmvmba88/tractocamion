@@ -38,18 +38,18 @@ Un sistema de 10 capas integradas:
 
 ## 🚀 Estado del Proyecto
 
-✅ **Aplicación Web Cross-Platform - COMPLETADA**
+🟡 **Yard OS Alpha — prototipo técnico, no listo para producción**
 
-La primera fase de Tractocamión 4.0 está lista: una aplicación web funcional que trabaja en todas las plataformas principales.
+La primera fase incluye un motor de ciclos, API y dashboard funcionales. Requiere PostgreSQL, configuración segura y validación del flujo completo antes de un piloto operativo.
 
 ### 🎉 Características Implementadas
 
 - ✅ **Dashboard en Tiempo Real** - Monitoreo de tractores, operadores y procesos
 - ✅ **API REST Completa** - Endpoints para integración con sistemas externos
-- ✅ **Cross-Platform** - Funciona en Linux, Windows, macOS (DMG), y Termux (Android)
+- 🧪 **Cross-Platform** - Código portable; falta validación completa por plataforma y no se incluye un DMG
 - ✅ **Monitoreo Automatizado** - Scripts para chequeo automático de procesos
 - ✅ **Interfaz Responsiva** - Funciona en desktop y móvil
-- ✅ **Documentación Completa** - Guías de instalación, API, y seguridad
+- 🟡 **Documentación de Alpha** - Guías iniciales de instalación, API y seguridad
 - ✅ **Autenticación JWT** - Sistema completo de autenticación con roles y tokens
 - ✅ **Base de Datos PostgreSQL** - Integración con base de datos real con migraciones
 - ✅ **Gestión Completa de Ciclos** - Crear, rastrear, y completar ciclos con earnings automáticos
@@ -67,6 +67,10 @@ npm install
 # Configurar base de datos (PostgreSQL)
 # Copiar .env.example a .env y configurar DATABASE_URL
 cp .env.example .env
+# Sustituir ambos secretos JWT con valores generados por `openssl rand -hex 32`
+
+# Opción reproducible si Docker está instalado
+docker compose up -d postgres
 
 # Ejecutar migraciones
 npm run db:migrate
@@ -97,6 +101,7 @@ start.bat       # Windows
 - **[INSTALL.md](INSTALL.md)** - Instalación detallada para todas las plataformas
 - **[API.md](API.md)** - Documentación completa de la API REST
 - **[SECURITY.md](SECURITY.md)** - Consideraciones de seguridad para producción
+- **[docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md)** - Límites comprobados de la versión alpha
 
 ### 🛠️ Próximos Pasos
 

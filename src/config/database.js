@@ -12,12 +12,12 @@ const idleTransactionTimeoutMs = parseIntegerEnv(process.env.DB_IDLE_IN_TRANSACT
 const queryTimeoutMs = parseIntegerEnv(process.env.DB_QUERY_TIMEOUT_MS, statementTimeoutMs);
 
 const logging =
-  process.env.NODE_ENV === 'development'
-    ? console.log
+  process.env.DB_LOG_SQL === 'true'
+    ? (sql, timingMs) => console.log(`[sequelize${typeof timingMs === 'number' ? `:${timingMs}ms` : ''}] query executed`)
     : slowQueryThresholdMs > 0
       ? (sql, timingMs) => {
           if (typeof timingMs === 'number' && timingMs >= slowQueryThresholdMs) {
-            console.warn(`[sequelize][slow:${timingMs}ms] ${sql}`);
+            console.warn(`[sequelize][slow:${timingMs}ms] query exceeded threshold`);
           }
         }
       : false;

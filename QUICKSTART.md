@@ -2,6 +2,22 @@
 
 ## Launch the Application
 
+## Preparación obligatoria
+
+```bash
+npm ci
+cp .env.example .env
+# Edita .env y genera dos secretos diferentes con: openssl rand -hex 32
+docker compose up -d postgres   # si Docker está disponible
+npm run db:migrate
+npm run db:seed
+npm run preflight
+npm test
+npm run test:integration   # con el servidor encendido
+```
+
+El servidor se detiene intencionalmente cuando faltan secretos seguros o PostgreSQL. La configuración incluida en `compose.yaml` es sólo para desarrollo local.
+
 ### Linux / macOS / Termux
 
 ```bash
@@ -27,17 +43,18 @@ npm start
 - **Dashboard:** http://localhost:3000
 - **API:** http://localhost:3000/api
 - **Health Check:** http://localhost:3000/api/health
+- **Readiness (incluye PostgreSQL):** http://localhost:3000/api/ready
 
 ---
 
 ## Features
 
-✅ **Cross-platform**: Works on Linux, Windows, macOS (DMG), and Termux (Android)  
+🧪 **Cross-platform codebase**: requiere validación separada en cada plataforma; no incluye DMG
 ✅ **Real-time monitoring**: Live updates every 5 seconds  
 ✅ **Process tracking**: Automatic monitoring of system processes  
 ✅ **REST API**: Full API for integration with other systems  
 ✅ **Responsive design**: Works on desktop and mobile devices  
-✅ **Zero configuration**: Works out of the box  
+🟡 **Configured startup**: requiere PostgreSQL y un archivo `.env` seguro
 
 ---
 
