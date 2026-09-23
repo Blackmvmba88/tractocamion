@@ -6,20 +6,19 @@ const path = require('path');
 const { validateRuntimeConfig } = require('../config/runtimeConfig');
 
 const sequelize = require('../config/database');
+const { assertValidEnvironment } = require('../config/validateEnvironment');
 const db = require('../models');
 const { Truck, Operator, Cycle, Process } = db;
 
 // Import middleware
 const { apiLimiter, loginLimiter, sanitizeInput } = require('../middleware/security');
 const { authenticateToken, requireRole } = require('../middleware/auth');
-const { 
-  registerValidation, 
-  loginValidation, 
+const {
+  registerValidation,
+  loginValidation,
   changePasswordValidation,
   refreshTokenValidation,
-  adminCreateUserValidation,
-  adminUpdateUserValidation,
-  handleValidationErrors 
+  handleValidationErrors
 } = require('../middleware/validation');
 
 // Import controllers
@@ -28,6 +27,8 @@ const cycleController = require('../controllers/cycleController');
 const analyticsController = require('../controllers/analyticsController');
 const nfcController = require('../controllers/nfcController');
 const userController = require('../controllers/userController');
+
+assertValidEnvironment();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,13 +44,8 @@ function parseTrustProxy(value) {
     return process.env.NODE_ENV === 'production' ? 1 : false;
   }
 
-  if (value === 'true') {
-    return true;
-  }
-
-  if (value === 'false') {
-    return false;
-  }
+  if (value === 'true') return true;
+  if (value === 'false') return false;
 
   const numericValue = Number.parseInt(value, 10);
   return Number.isInteger(numericValue) ? numericValue : value;
@@ -69,6 +65,7 @@ const corsOptions = {
   origin: corsOrigin,
   credentials: allowCredentialedCors
 };
+
 app.set('trust proxy', parseTrustProxy(process.env.TRUST_PROXY));
 app.disable('x-powered-by');
 app.set('etag', 'strong');
@@ -91,7 +88,6 @@ app.use(express.urlencoded({
 }));
 app.use(sanitizeInput);
 
-// Serve static files from the public directory
 app.use(express.static(publicDir, {
   etag: true,
   maxAge: staticAssetsMaxAgeMs,
@@ -108,20 +104,14 @@ app.use(express.static(publicDir, {
   }
 }));
 
-// API Routes
 const apiRouter = express.Router();
-
-// Apply rate limiting to all API routes
 apiRouter.use(apiLimiter);
 
-// =================
-// PUBLIC ROUTES (No authentication required)
-// =================
-
-// Health check endpoint
+// Public health endpoints
 apiRouter.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
+    check: 'liveness',
     timestamp: new Date().toISOString(),
     platform: process.platform,
     node_version: process.version
@@ -143,14 +133,13 @@ apiRouter.get('/ready', async (req, res) => {
 // AUTHENTICATION ROUTES (Public)
 // =================
 
-// Register new user (public registration for operators only)
-apiRouter.post('/auth/register', 
+// Public authentication routes
+apiRouter.post('/auth/register',
   registerValidation,
   handleValidationErrors,
   authController.register
 );
 
-// Login
 apiRouter.post('/auth/login',
   loginLimiter,
   loginValidation,
@@ -158,30 +147,15 @@ apiRouter.post('/auth/login',
   authController.login
 );
 
-// Refresh access token
 apiRouter.post('/auth/refresh',
   refreshTokenValidation,
   handleValidationErrors,
   authController.refresh
 );
 
-// =================
-// PROTECTED ROUTES (Authentication required)
-// =================
-
-// Logout (requires valid token)
-apiRouter.post('/auth/logout',
-  authenticateToken,
-  authController.logout
-);
-
-// Get current user profile
-apiRouter.get('/auth/me',
-  authenticateToken,
-  authController.me
-);
-
-// Change password
+// Protected account routes
+apiRouter.post('/auth/logout', authenticateToken, authController.logout);
+apiRouter.get('/auth/me', authenticateToken, authController.me);
 apiRouter.post('/auth/change-password',
   authenticateToken,
   changePasswordValidation,
@@ -219,23 +193,19 @@ apiRouter.get('/processes', authenticateToken, requireRole('admin', 'gerente'), 
     const processes = await Process.findAll({
       attributes: ['name', 'status', 'uptime_seconds', 'cpu_percent', 'memory_mb']
     });
-    
-    // Format the data to match the frontend expectation
-    const formattedProcesses = processes.map(p => ({
-      name: p.name,
-      status: p.status,
-      uptime: formatUptime(p.uptime_seconds),
-      cpu: `${p.cpu_percent}%`,
-      memory: `${p.memory_mb}MB`
+
+    const formattedProcesses = processes.map((process) => ({
+      name: process.name,
+      status: process.status,
+      uptime: formatUptime(process.uptime_seconds),
+      cpu: `${process.cpu_percent}%`,
+      memory: `${process.memory_mb}MB`
     }));
-    
-    res.json({
-      processes: formattedProcesses,
-      timestamp: new Date().toISOString()
-    });
+
+    res.json({ processes: formattedProcesses, timestamp: new Date().toISOString() });
   } catch (error) {
     console.error('Error fetching processes:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Database error',
       message: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
@@ -247,31 +217,30 @@ apiRouter.get('/trucks', authenticateToken, requireRole('admin', 'gerente'), asy
   try {
     const trucks = await Truck.findAll({
       attributes: ['id', 'plate', 'status', 'location', 'cycle_start_time'],
-      include: [{ 
-        model: Operator, 
+      include: [{
+        model: Operator,
         as: 'operator',
         attributes: ['name']
       }]
     });
-    
-    // Format the data to match the frontend expectation
-    const formattedTrucks = trucks.map(t => ({
-      id: t.id,
-      plate: t.plate,
-      status: t.status,
-      location: t.location,
-      operator: t.operator ? t.operator.name : null,
-      cycle_time: t.cycle_start_time ? calculateCycleTime(t.cycle_start_time) : null
+
+    const formattedTrucks = trucks.map((truck) => ({
+      id: truck.id,
+      plate: truck.plate,
+      status: truck.status,
+      location: truck.location,
+      operator: truck.operator ? truck.operator.name : null,
+      cycle_time: truck.cycle_start_time ? calculateCycleTime(truck.cycle_start_time) : null
     }));
-    
+
     res.json({
       trucks: formattedTrucks,
       total: trucks.length,
-      active: trucks.filter(t => t.status === 'active').length
+      active: trucks.filter((truck) => truck.status === 'active').length
     });
   } catch (error) {
     console.error('Error fetching trucks:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Database error',
       message: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
@@ -284,25 +253,24 @@ apiRouter.get('/operators', authenticateToken, requireRole('admin', 'gerente'), 
     const operators = await Operator.findAll({
       attributes: ['code', 'name', 'status', 'total_hours', 'total_cycles', 'total_earnings']
     });
-    
-    // Format the data to match the frontend expectation
-    const formattedOperators = operators.map(o => ({
-      id: o.code,
-      name: o.name,
-      status: o.status,
-      hours: `${o.total_hours}h`,
-      cycles: o.total_cycles,
-      earnings: `$${o.total_earnings}`
+
+    const formattedOperators = operators.map((operator) => ({
+      id: operator.code,
+      name: operator.name,
+      status: operator.status,
+      hours: `${operator.total_hours}h`,
+      cycles: operator.total_cycles,
+      earnings: `$${operator.total_earnings}`
     }));
-    
+
     res.json({
       operators: formattedOperators,
       total: operators.length,
-      available: operators.filter(o => o.status === 'available').length
+      available: operators.filter((operator) => operator.status === 'available').length
     });
   } catch (error) {
     console.error('Error fetching operators:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       error: 'Database error',
       message: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
@@ -362,13 +330,11 @@ apiRouter.post('/nfc/checkin', authenticateToken, nfcController.quickCheckin);
 
 app.use('/api', apiRouter);
 
-// Serve index.html for all other routes (SPA support)
 app.get('*', (req, res) => {
   res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(path.join(publicDir, 'index.html'));
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   if (err?.type === 'entity.too.large') {
     return res.status(413).json({
@@ -384,18 +350,15 @@ app.use((err, req, res, next) => {
     });
   }
 
-  if (res.headersSent) {
-    return next(err);
-  }
+  if (res.headersSent) return next(err);
 
   console.error(err.stack);
-  res.status(500).json({ 
+  res.status(500).json({
     error: 'Internal server error',
     message: process.env.NODE_ENV === 'development' ? err.message : undefined
   });
 });
 
-// Helper functions
 function formatUptime(seconds) {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
@@ -409,11 +372,10 @@ function calculateCycleTime(startTime) {
   return `${diffMinutes}min`;
 }
 
-// Test database connection and start server
 sequelize.authenticate()
   .then(() => {
     console.log('✅ Database connection established successfully');
-    
+
     const server = app.listen(PORT, () => {
       console.log('🚛 Tractocamión 4.0 - Sistema de Gestión Logística');
       console.log('='.repeat(50));
@@ -421,27 +383,20 @@ sequelize.authenticate()
       console.log(`🌍 Plataforma: ${process.platform}`);
       console.log(`📡 API disponible en: http://localhost:${PORT}/api`);
       console.log(`🖥️  Dashboard en: http://localhost:${PORT}`);
-      console.log('');
-      console.log('🔥 NEW INTEGRATIONS - More Consciousness & Absoluteness:');
-      console.log('   ✅ Cycle completion endpoint');
-      console.log('   ✅ Real-time location tracking');
-      console.log('   ✅ NFC/RFID identification system');
-      console.log('   ✅ Analytics & intelligent insights');
-      console.log('   ✅ Alert & anomaly detection');
       console.log('='.repeat(50));
     }).on('error', (err) => {
       if (err.code === 'EADDRINUSE') {
         console.error(`❌ Error: Puerto ${PORT} ya está en uso`);
-        console.error(`💡 Intenta con un puerto diferente: PORT=8080 npm start`);
+        console.error('💡 Intenta con un puerto diferente: PORT=8080 npm start');
       } else {
         console.error('❌ Error al iniciar el servidor:', err.message);
       }
       process.exit(1);
     });
-    
+
     module.exports = { app, server };
   })
-  .catch(err => {
+  .catch((err) => {
     console.error('❌ Unable to connect to the database:', err.message);
     console.error('💡 Make sure PostgreSQL is running and DATABASE_URL is correct');
     console.error('💡 See INSTALL.md for database setup instructions');
