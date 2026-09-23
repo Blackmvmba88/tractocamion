@@ -72,6 +72,44 @@ const refreshTokenValidation = [
     .withMessage('Debe proporcionar un refresh token')
 ];
 
+const adminCreateUserValidation = [
+  body('username')
+    .trim()
+    .isLength({ min: 3, max: 50 })
+    .withMessage('El nombre de usuario debe tener entre 3 y 50 caracteres')
+    .matches(/^[a-zA-Z0-9_-]+$/)
+    .withMessage('El nombre de usuario contiene caracteres inválidos'),
+  body('email')
+    .trim()
+    .isEmail()
+    .withMessage('Debe proporcionar un email válido')
+    .normalizeEmail(),
+  body('password')
+    .isLength({ min: 8 })
+    .withMessage('La contraseña debe tener al menos 8 caracteres')
+    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
+    .withMessage('La contraseña debe contener mayúscula, minúscula y número'),
+  body('role')
+    .isIn(['admin', 'gerente', 'operador'])
+    .withMessage('Rol inválido'),
+  body('operator_id').optional({ nullable: true }).isInt({ min: 1 })
+];
+
+const adminUpdateUserValidation = [
+  body('role')
+    .optional()
+    .isIn(['admin', 'gerente', 'operador'])
+    .withMessage('Rol inválido'),
+  body('operator_id')
+    .optional({ nullable: true })
+    .isInt({ min: 1 })
+    .withMessage('El ID del operador debe ser un entero positivo'),
+  body('is_active')
+    .optional()
+    .isBoolean()
+    .withMessage('is_active debe ser booleano')
+];
+
 /**
  * Middleware to handle validation errors
  */
@@ -96,5 +134,7 @@ module.exports = {
   loginValidation,
   changePasswordValidation,
   refreshTokenValidation,
+  adminCreateUserValidation,
+  adminUpdateUserValidation,
   handleValidationErrors
 };

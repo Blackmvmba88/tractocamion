@@ -1,0 +1,19 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: tractocamion
+      POSTGRES_USER: tractocamion
+      POSTGRES_PASSWORD: tractocamion_local_only
+    ports:
+      - "5432:5432"
+    volumes:
+      - tractocamion_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U tractocamion -d tractocamion"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  tractocamion_postgres:

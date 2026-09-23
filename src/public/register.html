@@ -13,58 +13,18 @@
         <div class="auth-card">
             <div class="auth-header">
                 <h1>🚛 Tractocamión 4.0</h1>
-                <h2>Crear Cuenta</h2>
+                <h2>Registro administrado</h2>
+            </div>
+
+            <div class="auth-form">
+                <p>Por seguridad, las cuentas de operadores y gerentes son creadas y vinculadas por un administrador del patio.</p>
             </div>
             
-            <form id="register-form" class="auth-form">
-                <div class="form-group">
-                    <label for="username">Nombre de Usuario</label>
-                    <input type="text" id="username" name="username" required 
-                           minlength="3" maxlength="50" 
-                           pattern="[a-zA-Z0-9_-]+"
-                           autocomplete="username">
-                    <small>Solo letras, números, guiones y guiones bajos</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" required autocomplete="email">
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">Contraseña</label>
-                    <input type="password" id="password" name="password" required 
-                           minlength="8"
-                           autocomplete="new-password">
-                    <small>Mínimo 8 caracteres, debe incluir mayúsculas, minúsculas y números</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="confirm-password">Confirmar Contraseña</label>
-                    <input type="password" id="confirm-password" name="confirm-password" required 
-                           minlength="8"
-                           autocomplete="new-password">
-                </div>
-                
-                <div class="form-group">
-                    <label for="role">Rol</label>
-                    <select id="role" name="role" required disabled title="Solo operador disponible para registro público">
-                        <option value="operador" selected>Operador</option>
-                    </select>
-                    <small>⚠️ Registro público solo permite crear cuentas de operador. Contacta un administrador para otros roles.</small>
-                </div>
-                
-                <div id="error-message" class="error-box" style="display:none;"></div>
-                
-                <button type="submit" class="btn-primary btn-auth">Registrarse</button>
-            </form>
-            
             <div class="auth-footer">
-                <p>¿Ya tienes cuenta? <a href="/login.html">Inicia sesión aquí</a></p>
+                <p><a href="/login.html">Volver a iniciar sesión</a></p>
             </div>
         </div>
     </div>
     
-    <script src="/auth.js"></script>
 </body>
 </html>

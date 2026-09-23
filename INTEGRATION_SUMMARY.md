@@ -1,4 +1,6 @@
-# 🔥 Nuevas Integraciones - Más Consciencia y Absolutismo
+# Historical Integration Summary
+
+> This is an implementation inventory, not evidence of a completed live integration. Run the authenticated `test-integrations.sh` against an isolated local database to validate the current runtime.
 
 Este documento describe las nuevas funcionalidades implementadas para hacer el sistema Tractocamión 4.0 más **consciente** (inteligente y aware) y **absoluto** (completo y exhaustivo).
 

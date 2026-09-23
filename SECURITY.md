@@ -12,6 +12,10 @@
 - Token blacklist for secure logout
 - Role-based access control (admin, gerente, operador)
 - Password hashing with bcrypt (12 rounds)
+- Operational routes protected by authentication and role checks
+- Public registration disabled by default (`ALLOW_PUBLIC_REGISTRATION=false`)
+- Helmet security headers and Content Security Policy
+- SQL logging disabled by default so tokens, password hashes and personal data are not written to logs
 
 **Configuration:**
 ```javascript
@@ -114,7 +118,7 @@ app.use(cors({
 **Implemented:**
 - Sequelize ORM with parameterized queries
 - Password hashing before storage
-- SQLite for development (upgrade to PostgreSQL/MySQL for production)
+- PostgreSQL for development and production
 - Automatic database migrations
 
 **Models:**

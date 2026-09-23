@@ -55,7 +55,7 @@ const apiLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   ipv6Subnet: 56,
-  skip: (req) => req.method === 'GET' && req.path === '/health'
+  skip: (req) => req.method === 'GET' && ['/health', '/ready'].includes(req.path)
 });
 
 /**

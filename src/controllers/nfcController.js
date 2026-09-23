@@ -37,6 +37,13 @@ exports.verifyTag = async (req, res) => {
         tag_id: tag_id
       });
     }
+
+    if (req.user.role === 'operador' && Number(req.user.operator_id) !== Number(operator.id)) {
+      return res.status(403).json({
+        success: false,
+        error: 'No puedes verificar la etiqueta de otro operador'
+      });
+    }
     
     // Return operator info
     res.json({
@@ -85,7 +92,7 @@ exports.registerTag = async (req, res) => {
         error: `Operator ${operator_id} not found`
       });
     }
-    
+
     // Check if tag is already registered
     const existingTag = await Operator.findOne({
       where: { nfc_tag_id: tag_id }
@@ -201,6 +208,13 @@ exports.quickCheckin = async (req, res) => {
         success: false,
         verified: false,
         error: 'NFC tag not registered'
+      });
+    }
+
+    if (req.user.role === 'operador' && Number(req.user.operator_id) !== Number(operator.id)) {
+      return res.status(403).json({
+        success: false,
+        error: 'No puedes iniciar registro con la etiqueta de otro operador'
       });
     }
     

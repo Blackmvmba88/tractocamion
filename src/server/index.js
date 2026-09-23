@@ -1,7 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const helmet = require('helmet');
 const path = require('path');
+const { validateRuntimeConfig } = require('../config/runtimeConfig');
 
 const sequelize = require('../config/database');
 const db = require('../models');
@@ -9,12 +11,14 @@ const { Truck, Operator, Cycle, Process } = db;
 
 // Import middleware
 const { apiLimiter, loginLimiter, sanitizeInput } = require('../middleware/security');
-const { authenticateToken } = require('../middleware/auth');
+const { authenticateToken, requireRole } = require('../middleware/auth');
 const { 
   registerValidation, 
   loginValidation, 
   changePasswordValidation,
   refreshTokenValidation,
+  adminCreateUserValidation,
+  adminUpdateUserValidation,
   handleValidationErrors 
 } = require('../middleware/validation');
 
@@ -23,6 +27,7 @@ const authController = require('../controllers/authController');
 const cycleController = require('../controllers/cycleController');
 const analyticsController = require('../controllers/analyticsController');
 const nfcController = require('../controllers/nfcController');
+const userController = require('../controllers/userController');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -56,6 +61,8 @@ const staticAssetsMaxAgeMs = parseIntegerEnv(process.env.STATIC_CACHE_MAX_AGE_MS
 const corsOrigin = process.env.CORS_ORIGIN || '*';
 const allowCredentialedCors = corsOrigin !== '*';
 
+validateRuntimeConfig(process.env);
+
 // Middleware
 // CORS configuration
 const corsOptions = {
@@ -66,6 +73,15 @@ app.set('trust proxy', parseTrustProxy(process.env.TRUST_PROXY));
 app.disable('x-powered-by');
 app.set('etag', 'strong');
 
+app.use(helmet({
+  contentSecurityPolicy: {
+    directives: {
+      ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+      'script-src': ["'self'"],
+      'style-src': ["'self'", "'unsafe-inline'"]
+    }
+  }
+}));
 app.use(cors(corsOptions));
 app.use(express.json({ limit: jsonLimit }));
 app.use(express.urlencoded({
@@ -110,6 +126,17 @@ apiRouter.get('/health', (req, res) => {
     platform: process.platform,
     node_version: process.version
   });
+});
+
+// Readiness check for deployment probes. The server only starts after an
+// initial connection, but this also detects a database outage at runtime.
+apiRouter.get('/ready', async (req, res) => {
+  try {
+    await sequelize.query('SELECT 1');
+    res.json({ status: 'ready', database: 'connected', timestamp: new Date().toISOString() });
+  } catch (error) {
+    res.status(503).json({ status: 'not_ready', database: 'unavailable', timestamp: new Date().toISOString() });
+  }
 });
 
 // =================
@@ -163,11 +190,31 @@ apiRouter.post('/auth/change-password',
 );
 
 // =================
-// DATA ROUTES (Public for now, can be protected later)
+// USER ADMINISTRATION (admin only; accounts are never deleted here)
+// =================
+
+apiRouter.get('/users', authenticateToken, requireRole('admin'), userController.listUsers);
+apiRouter.post('/users',
+  authenticateToken,
+  requireRole('admin'),
+  adminCreateUserValidation,
+  handleValidationErrors,
+  userController.createUser
+);
+apiRouter.patch('/users/:id',
+  authenticateToken,
+  requireRole('admin'),
+  adminUpdateUserValidation,
+  handleValidationErrors,
+  userController.updateUser
+);
+
+// =================
+// OPERATIONAL ROUTES (authentication and RBAC required)
 // =================
 
 // Process monitoring endpoint
-apiRouter.get('/processes', async (req, res) => {
+apiRouter.get('/processes', authenticateToken, requireRole('admin', 'gerente'), async (req, res) => {
   try {
     const processes = await Process.findAll({
       attributes: ['name', 'status', 'uptime_seconds', 'cpu_percent', 'memory_mb']
@@ -196,7 +243,7 @@ apiRouter.get('/processes', async (req, res) => {
 });
 
 // Truck status endpoint
-apiRouter.get('/trucks', async (req, res) => {
+apiRouter.get('/trucks', authenticateToken, requireRole('admin', 'gerente'), async (req, res) => {
   try {
     const trucks = await Truck.findAll({
       attributes: ['id', 'plate', 'status', 'location', 'cycle_start_time'],
@@ -232,7 +279,7 @@ apiRouter.get('/trucks', async (req, res) => {
 });
 
 // Operators endpoint
-apiRouter.get('/operators', async (req, res) => {
+apiRouter.get('/operators', authenticateToken, requireRole('admin', 'gerente'), async (req, res) => {
   try {
     const operators = await Operator.findAll({
       attributes: ['code', 'name', 'status', 'total_hours', 'total_cycles', 'total_earnings']
@@ -267,51 +314,51 @@ apiRouter.get('/operators', async (req, res) => {
 // =================
 
 // Get all cycles (with filters)
-apiRouter.get('/cycles', cycleController.getCycles);
+apiRouter.get('/cycles', authenticateToken, requireRole('admin', 'gerente'), cycleController.getCycles);
 
 // Get single cycle details
-apiRouter.get('/cycles/:id', cycleController.getCycle);
+apiRouter.get('/cycles/:id', authenticateToken, requireRole('admin', 'gerente'), cycleController.getCycle);
 
 // Create new cycle
-apiRouter.post('/cycles', cycleController.createCycle);
+apiRouter.post('/cycles', authenticateToken, requireRole('admin', 'gerente'), cycleController.createCycle);
 
 // Complete a cycle
-apiRouter.post('/cycles/:id/complete', cycleController.completeCycle);
+apiRouter.post('/cycles/:id/complete', authenticateToken, requireRole('admin', 'gerente'), cycleController.completeCycle);
 
 // Update cycle location (real-time tracking)
-apiRouter.patch('/cycles/:id/location', cycleController.updateLocation);
+apiRouter.patch('/cycles/:id/location', authenticateToken, requireRole('admin', 'gerente'), cycleController.updateLocation);
 
 // =================
 // ANALYTICS ROUTES (Consciousness - Intelligent Insights)
 // =================
 
 // Dashboard analytics
-apiRouter.get('/analytics/dashboard', analyticsController.getDashboard);
+apiRouter.get('/analytics/dashboard', authenticateToken, analyticsController.getDashboard);
 
 // Operator performance metrics
-apiRouter.get('/analytics/operators', analyticsController.getOperatorMetrics);
+apiRouter.get('/analytics/operators', authenticateToken, requireRole('admin', 'gerente'), analyticsController.getOperatorMetrics);
 
 // Truck utilization metrics
-apiRouter.get('/analytics/trucks', analyticsController.getTruckMetrics);
+apiRouter.get('/analytics/trucks', authenticateToken, requireRole('admin', 'gerente'), analyticsController.getTruckMetrics);
 
 // Alerts and anomalies (intelligent monitoring)
-apiRouter.get('/analytics/alerts', analyticsController.getAlerts);
+apiRouter.get('/analytics/alerts', authenticateToken, requireRole('admin', 'gerente'), analyticsController.getAlerts);
 
 // =================
 // NFC/RFID ROUTES (Absoluteness - Complete Identification)
 // =================
 
 // Verify NFC tag
-apiRouter.post('/nfc/verify', nfcController.verifyTag);
+apiRouter.post('/nfc/verify', authenticateToken, nfcController.verifyTag);
 
 // Register NFC tag to operator
-apiRouter.post('/nfc/register', nfcController.registerTag);
+apiRouter.post('/nfc/register', authenticateToken, requireRole('admin', 'gerente'), nfcController.registerTag);
 
 // Unregister NFC tag
-apiRouter.post('/nfc/unregister', nfcController.unregisterTag);
+apiRouter.post('/nfc/unregister', authenticateToken, requireRole('admin', 'gerente'), nfcController.unregisterTag);
 
 // Quick check-in with NFC
-apiRouter.post('/nfc/checkin', nfcController.quickCheckin);
+apiRouter.post('/nfc/checkin', authenticateToken, nfcController.quickCheckin);
 
 app.use('/api', apiRouter);
 

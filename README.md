@@ -159,6 +159,10 @@ Ver: **[docs/YARD_OPERATING_MODEL.md](docs/YARD_OPERATING_MODEL.md)**
 ```bash
 npm install
 cp .env.example .env
+# Sustituir ambos secretos JWT con valores generados por `openssl rand -hex 32`
+
+# Opción reproducible si Docker está instalado
+docker compose up -d postgres
 
 # configurar DATABASE_URL
 npm run db:migrate

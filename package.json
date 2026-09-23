@@ -4,6 +4,10 @@
   "description": "Logistics yard OS and BlackMamba vehicle-platform foundation for simulation, telemetry and mobility research",
   "main": "src/server/index.js",
   "scripts": {
+    "test": "node --test",
+    "test:integration": "./test-integrations.sh",
+    "check": "find src test -name '*.js' -print0 | xargs -0 -n1 node --check",
+    "preflight": "node src/scripts/preflight.js",
     "start": "node src/server/index.js",
     "dev": "node src/server/index.js",
     "monitor": "node src/scripts/process-monitor.js",
@@ -28,19 +32,19 @@
   "license": "MIT",
   "dependencies": {
     "bcrypt": "^6.0.0",
-    "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "express": "^4.18.2",
     "express-rate-limit": "^8.2.1",
     "express-validator": "^7.3.1",
+    "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.3",
     "pg": "^8.17.2",
     "pg-hstore": "^2.3.4",
     "sequelize": "^6.37.7"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
   "devDependencies": {
     "sequelize-cli": "^6.6.5"

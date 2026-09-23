@@ -44,6 +44,13 @@ function getTokenExpirationTime(expiresIn) {
  */
 async function register(req, res) {
   try {
+    if (process.env.ALLOW_PUBLIC_REGISTRATION !== 'true') {
+      return res.status(403).json({
+        error: 'Registro público deshabilitado',
+        message: 'Solicita al administrador del patio que cree o habilite tu cuenta'
+      });
+    }
+
     let { username, email, password, role, operator_id } = req.body;
 
     // Security: Only allow operador role for public registration
