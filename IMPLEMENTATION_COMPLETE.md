@@ -1,4 +1,6 @@
-# 🎯 Implementation Complete - More Consciousness & Absoluteness
+# Historical Implementation Summary
+
+> This document records the originally implemented scope. It is not a production-readiness declaration. The current release is `0.1.0` alpha; see `docs/PRODUCT_MATURITY.md` and `README.md` for current limitations.
 
 ## 📝 Summary
 

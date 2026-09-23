@@ -1,0 +1,30 @@
+name: BM-BUS-001 Foundation
+
+on:
+  pull_request:
+    paths:
+      - "src/vehicle/**"
+      - "src/scripts/bm-bus-*.js"
+      - "docs/BM_BUS_001.md"
+      - "docs/SAFETY_CASE_BM_BUS_001.md"
+      - "package.json"
+  push:
+    branches:
+      - main
+    paths:
+      - "src/vehicle/**"
+      - "src/scripts/bm-bus-*.js"
+      - "package.json"
+
+jobs:
+  simulation-smoke:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [18, 20]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm run test:bus

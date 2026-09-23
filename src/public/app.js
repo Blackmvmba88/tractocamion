@@ -103,12 +103,21 @@ function showTableMessage(tableBodyId, colspan, message) {
     tableBody.innerHTML = `<tr><td colspan="${colspan}" class="table-message">${message}</td></tr>`;
 }
 
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
 function normalizeStatus(value) {
-    return String(value || 'available').toLowerCase().replace(/\s+/g, '-');
+    return String(value || 'available').toLowerCase().replace(/[^a-z0-9_-]/g, '-');
 }
 
 function renderBadge(value) {
-    const label = value ? String(value).toUpperCase() : 'N/D';
+    const label = value ? escapeHtml(String(value).toUpperCase()) : 'N/D';
     const className = normalizeStatus(value);
     return `<span class="status-${className}">${label}</span>`;
 }
@@ -117,7 +126,7 @@ function renderValueTone(text, tone) {
     if (!tone) {
         return text;
     }
-    return `<span class="${tone}">${text}</span>`;
+    return `<span class="${tone}">${escapeHtml(text)}</span>`;
 }
 
 function syncTableRows({ tableBodyId, rows, getKey, renderCells }) {
@@ -299,11 +308,11 @@ async function updateProcesses() {
             rows: processes,
             getKey: (process) => process.name,
             renderCells: (process) => `
-                <td><strong>${process.name}</strong></td>
+                <td><strong>${escapeHtml(process.name)}</strong></td>
                 <td>${renderBadge(process.status)}</td>
-                <td>${process.uptime || '-'}</td>
-                <td>${process.cpu || '-'}</td>
-                <td>${process.memory || '-'}</td>
+                <td>${escapeHtml(process.uptime || '-')}</td>
+                <td>${escapeHtml(process.cpu || '-')}</td>
+                <td>${escapeHtml(process.memory || '-')}</td>
             `
         });
 
@@ -346,12 +355,12 @@ async function updateTrucks() {
             rows: trucks,
             getKey: (truck) => truck.id,
             renderCells: (truck) => `
-                <td><strong>${truck.id}</strong></td>
-                <td>${truck.plate || '-'}</td>
+                <td><strong>${escapeHtml(truck.id)}</strong></td>
+                <td>${escapeHtml(truck.plate || '-')}</td>
                 <td>${renderBadge(truck.status)}</td>
-                <td>${truck.location || '-'}</td>
-                <td>${truck.operator || '<span class="row-muted">Sin asignar</span>'}</td>
-                <td>${truck.cycle_time || '-'}</td>
+                <td>${escapeHtml(truck.location || '-')}</td>
+                <td>${truck.operator ? escapeHtml(truck.operator) : '<span class="row-muted">Sin asignar</span>'}</td>
+                <td>${escapeHtml(truck.cycle_time || '-')}</td>
             `
         });
 
@@ -399,12 +408,12 @@ async function updateOperators() {
                 const earnings = operator.earnings || '-';
                 const cycleTone = cycles >= 5 ? 'value-positive' : cycles >= 1 ? 'value-warning' : 'row-muted';
                 return `
-                    <td><strong>${operator.id}</strong></td>
-                    <td>${operator.name || '-'}</td>
+                    <td><strong>${escapeHtml(operator.id)}</strong></td>
+                    <td>${escapeHtml(operator.name || '-')}</td>
                     <td>${renderBadge(operator.status)}</td>
-                    <td>${hours}</td>
+                    <td>${escapeHtml(hours)}</td>
                     <td>${renderValueTone(cycles, cycleTone)}</td>
-                    <td><strong>${earnings}</strong></td>
+                    <td><strong>${escapeHtml(earnings)}</strong></td>
                 `;
             }
         });
@@ -513,6 +522,10 @@ async function init() {
     console.log('🚛 Tractocamión 4.0 Dashboard Initialized');
 
     await waitForAuth();
+    if (!window.authUtils || !window.authUtils.isAuthenticated()) {
+        window.location.replace('/login.html');
+        return;
+    }
     displayUserInfo();
     setupLogoutButton();
     updateRefreshMode();

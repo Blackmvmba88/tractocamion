@@ -31,3 +31,4 @@ database.sqlite
 tmp/
 temp/
 *.tmp
+.local/
