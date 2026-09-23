@@ -1,7 +1,7 @@
 {
   "name": "tractocamion-web",
-  "version": "0.1.0",
-  "description": "Sistema Integral de Gestión Logística - Cross-platform Web Application",
+  "version": "4.0.0",
+  "description": "Logistics yard OS and BlackMamba vehicle-platform foundation for simulation, telemetry and mobility research",
   "main": "src/server/index.js",
   "scripts": {
     "test": "node --test",
@@ -14,13 +14,19 @@
     "db:migrate": "sequelize-cli db:migrate",
     "db:seed": "sequelize-cli db:seed:all",
     "db:reset": "sequelize-cli db:migrate:undo:all && npm run db:migrate && npm run db:seed",
-    "db:create": "sequelize-cli db:create"
+    "db:create": "sequelize-cli db:create",
+    "sim:bus": "node src/scripts/bm-bus-sim.js",
+    "test:bus": "node src/scripts/bm-bus-smoke.js"
   },
   "keywords": [
     "logistics",
     "tractocamion",
     "fleet-management",
-    "cross-platform"
+    "cross-platform",
+    "vehicle-platform",
+    "digital-twin",
+    "simulation",
+    "mobility"
   ],
   "author": "Tractocamión Team",
   "license": "MIT",

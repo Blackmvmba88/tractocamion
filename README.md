@@ -1,151 +1,270 @@
-# 🚛 Tractocamión 4.0 - Sistema Integral de Gestión Logística
+# 🚛 Tractocamión 4.0 + BlackMamba Vehicle Platform
+
+Sistema operativo para logística vehicular que ahora evoluciona hacia una plataforma común para tractocamiones, autobuses y futuras unidades de servicio.
+
+La base existente —operadores, vehículos, ciclos, ubicación, alertas, analytics, NFC/RFID y API— se conserva. La nueva línea **BM-BUS-001** añade simulación, gemelo digital y una arquitectura de seguridad separada del servidor web.
+
+> **Estado físico actual:** simulación y diseño. Este repositorio no implementa control directo de actuadores de un vehículo real.
 
 ## 🎯 Visión
 
-Un ecosistema logístico revolucionario que optimiza el flujo de tractocamiones desde la raíz, eliminando cuellos de botella, burocracia y tiempos muertos, mientras garantiza descanso digno para operadores y maximiza throughput.
+El núcleo no es el dashboard. Es el motor operacional:
 
-## 🔥 El Problema
+```text
+operador → vehículo → misión/ciclo → ubicación/estado → eventos → analytics → mejora
+```
 
-En puertos y patios logísticos tradicionales:
-- ⏱️ Tiempo promedio por ciclo: 3.5-8 horas
-- 📉 Tiempo productivo real: ~30%
-- 😴 Operadores cansados: 80%+ manejan con fatiga
-- 📄 Burocracia manual: 70% del tiempo total
-- 💰 Pago retrasado: 3-7 días
+En logística, esa misión es un ciclo de patio. En movilidad, puede ser un viaje de pasajeros, reposicionamiento, mantenimiento o apoyo de evacuación.
 
-## ✨ La Solución
+## 🧠 Dos dominios, una plataforma
 
-Un sistema de 10 capas integradas:
+### Tractocamión / Yard OS
 
-1. **Diseño Geométrico Optimizado** - Patio pensado para radios de giro reales
-2. **Identificación Sin Fricción** - NFC/RFID, cero papeleo
-3. **Cerebro del Patio** - Asignación inteligente en tiempo real
-4. **Módulo de Relevo** - Operadores descansan, tractores siguen trabajando
-5. **Infraestructura Humana** - Regaderas, camas, comedor, dignidad
-6. **Economía del Ciclo** - Pago inmediato por ciclo, no por hora
-7. **Automatización** - Maniobras asistidas/autónomas
-8. **Políticas de Dignidad** - Descanso obligatorio, transparencia total
-9. **API Abierta** - Integración con toda la cadena logística
-10. **Aprendizaje Continuo** - El sistema optimiza solo
+Optimiza patios y ciclos logísticos:
 
-## 📊 Resultados Esperados
+- identificación NFC/RFID,
+- asignación de tractor/operador,
+- seguimiento de ciclos,
+- descanso y relevo,
+- detección de demoras,
+- earnings,
+- analytics,
+- reducción de tiempo muerto.
 
-| Métrica | Actual | Con Tractocamión 4.0 |
-|---------|--------|---------------------|
-| Tiempo por ciclo | 5 horas | 55 min |
-| Throughput | 6 cam/día | 20 cam/día |
-| ROI | - | <1 mes |
+### BlackMamba Mobility / BM-BUS-001
 
-## 🚀 Estado del Proyecto
+Extiende la misma base hacia transporte de pasajeros:
 
-🟡 **Yard OS Alpha — prototipo técnico, no listo para producción**
+- simulación de vehículo,
+- estado de seguridad,
+- validación de comandos,
+- gemelo digital,
+- telemetría,
+- black-box/replay,
+- asistencia al operador,
+- futura teleoperación limitada y validada,
+- investigación de transporte modular y demanda adaptativa.
 
-La primera fase incluye un motor de ciclos, API y dashboard funcionales. Requiere PostgreSQL, configuración segura y validación del flujo completo antes de un piloto operativo.
+## 🚌 BM-BUS-001
 
-### 🎉 Características Implementadas
+La primera meta NO es autonomía total.
 
-- ✅ **Dashboard en Tiempo Real** - Monitoreo de tractores, operadores y procesos
-- ✅ **API REST Completa** - Endpoints para integración con sistemas externos
-- 🧪 **Cross-Platform** - Código portable; falta validación completa por plataforma y no se incluye un DMG
-- ✅ **Monitoreo Automatizado** - Scripts para chequeo automático de procesos
-- ✅ **Interfaz Responsiva** - Funciona en desktop y móvil
-- 🟡 **Documentación de Alpha** - Guías iniciales de instalación, API y seguridad
-- ✅ **Autenticación JWT** - Sistema completo de autenticación con roles y tokens
-- ✅ **Base de Datos PostgreSQL** - Integración con base de datos real con migraciones
-- ✅ **Gestión Completa de Ciclos** - Crear, rastrear, y completar ciclos con earnings automáticos
-- ✅ **Sistema NFC/RFID** - Registro y verificación de operadores sin fricción
-- ✅ **Analytics Inteligentes** - Dashboard con KPIs, métricas de performance y eficiencia
-- ✅ **Alertas Proactivas** - Detección de riesgos de fatiga, demoras y anomalías
-- ✅ **Rastreo de Ubicación** - Actualizaciones de ubicación en tiempo real para ciclos activos
+La meta es demostrar, por etapas:
 
-### 🚀 Empezar Ahora
+```text
+SIMULAR
+  ↓
+VALIDAR
+  ↓
+INSTRUMENTAR
+  ↓
+OBSERVAR
+  ↓
+ASISTIR
+  ↓
+PRUEBA CERRADA A MUY BAJA VELOCIDAD
+  ↓
+MEDIR + REPLAY
+```
+
+La primera prueba física futura se plantea únicamente en recinto cerrado, sin pasajeros públicos, con operador local de seguridad, parada de emergencia independiente y límite de velocidad independiente.
+
+Ver: **[docs/BM_BUS_001.md](docs/BM_BUS_001.md)**
+
+## 🛡️ Regla de arquitectura
+
+La aplicación web **no controla directamente un vehículo**.
+
+```text
+Dashboard / API
+      ↓
+command request
+      ↓
+vehicle gateway
+      ↓
+local safety controller
+      ↓
+simulator / interfaz física validada por separado
+```
+
+La red puede pedir. La capa local decide.
+
+Ver:
+
+- **[Vehicle Platform Architecture](docs/VEHICLE_PLATFORM_ARCHITECTURE.md)**
+- **[BM-BUS-001 Safety Case](docs/SAFETY_CASE_BM_BUS_001.md)**
+- **[Mobility Roadmap](docs/MOBILITY_ROADMAP.md)**
+
+## 🧪 Simulador BM-BUS-001
+
+La rama de fundación incluye un simulador pequeño y determinista.
+
+Prueba:
+
+- límite experimental de 10 km/h,
+- pérdida de enlace,
+- parada segura,
+- E-STOP,
+- rechazo de comandos obsoletos.
 
 ```bash
-# Instalar dependencias
-npm install
+npm run sim:bus
+npm run test:bus
+```
 
-# Configurar base de datos (PostgreSQL)
-# Copiar .env.example a .env y configurar DATABASE_URL
+No realiza I/O físico.
+
+## ✨ Capacidades existentes
+
+- Dashboard operacional
+- API REST
+- Autenticación JWT y roles
+- PostgreSQL + Sequelize
+- Gestión de ciclos
+- Modelos de tractores y operadores
+- NFC/RFID
+- Analytics
+- Alertas proactivas
+- Rastreo de ubicación
+- Monitoreo de procesos
+- UI responsive
+- Linux / macOS / Windows / Termux
+
+## 🔥 Flujo logístico actual
+
+```text
+Truck arrives
+      ↓
+Operator check-in
+      ↓
+NFC/RFID
+      ↓
+Cycle created
+      ↓
+Yard assignment
+      ↓
+Location/status
+      ↓
+Delay/fatigue monitoring
+      ↓
+Cycle completed
+      ↓
+Earnings / rest / next optimization
+```
+
+Ver: **[docs/YARD_OPERATING_MODEL.md](docs/YARD_OPERATING_MODEL.md)**
+
+## 🚀 Inicio rápido
+
+```bash
+npm install
 cp .env.example .env
 # Sustituir ambos secretos JWT con valores generados por `openssl rand -hex 32`
 
 # Opción reproducible si Docker está instalado
 docker compose up -d postgres
 
-# Ejecutar migraciones
+# configurar DATABASE_URL
 npm run db:migrate
-
-# Poblar base de datos con datos de prueba
 npm run db:seed
 
-# Iniciar aplicación
 npm start
-
-# O usar los scripts de inicio
-./start.sh      # Linux/macOS/Termux
-start.bat       # Windows
 ```
 
-**Acceder al Dashboard:** http://localhost:3000
+Dashboard local:
 
-**Credenciales de prueba:**
+```text
+http://localhost:3000
+```
+
+### Datos demo
+
 - Admin: `admin` / `Admin123!`
 - Gerente: `gerente1` / `Gerente123!`
 - Operador: `operador1` / `Operador123!`
 
-⚠️ **IMPORTANTE:** Cambiar todas las contraseñas en producción
+⚠️ Son credenciales de demostración. Deben deshabilitarse o rotarse en cualquier despliegue real.
 
-### 📚 Documentación
+## 📚 Documentación
 
-- **[QUICKSTART.md](QUICKSTART.md)** - Guía rápida de inicio
-- **[INSTALL.md](INSTALL.md)** - Instalación detallada para todas las plataformas
-- **[API.md](API.md)** - Documentación completa de la API REST
-- **[SECURITY.md](SECURITY.md)** - Consideraciones de seguridad para producción
-- **[docs/KNOWN_LIMITATIONS.md](docs/KNOWN_LIMITATIONS.md)** - Límites comprobados de la versión alpha
+### Plataforma
 
-### 🛠️ Próximos Pasos
+- [BM-BUS-001](docs/BM_BUS_001.md)
+- [Vehicle Platform Architecture](docs/VEHICLE_PLATFORM_ARCHITECTURE.md)
+- [BM-BUS-001 Safety Case](docs/SAFETY_CASE_BM_BUS_001.md)
+- [Mobility Roadmap](docs/MOBILITY_ROADMAP.md)
+- [Product Maturity](docs/PRODUCT_MATURITY.md)
 
-- [x] Integración con base de datos real
-- [x] Sistema de autenticación JWT
-- [x] Integración NFC/RFID ✨ **NUEVO**
-- [x] Sistema de ciclos completo con cálculo de earnings ✨ **NUEVO**
-- [x] Analytics e insights inteligentes ✨ **NUEVO**
-- [x] Alertas y detección de anomalías ✨ **NUEVO**
-- [ ] Módulo de pagos inmediatos
-- [ ] Machine Learning para optimización
-- [ ] Aplicación móvil nativa
-- [ ] WebSockets para actualizaciones en tiempo real
+### Operación existente
 
-### 🔥 Nuevas Integraciones - Más Consciencia y Absolutismo
+- [Yard Operating Model](docs/YARD_OPERATING_MODEL.md)
+- [API](API.md)
+- [Quickstart](QUICKSTART.md)
+- [Install](INSTALL.md)
+- [Security](SECURITY.md)
+- [Security Best Practices](SECURITY_BEST_PRACTICES.md)
 
-**Consciencia (Inteligencia & Awareness):**
-- ✅ **Analytics Dashboard** - Métricas comprehensivas en tiempo real
-- ✅ **Sistema de Alertas** - Detección proactiva de riesgos de fatiga y demoras
-- ✅ **Métricas de Performance** - Análisis de operadores y tractores
-- ✅ **Cálculo Automático de Earnings** - $50/hora + $20 bonus por eficiencia
+## 🗺️ Roadmap
 
-**Absolutismo (Completitud & Exhaustividad):**
-- ✅ **Ciclo de Vida Completo** - Crear → Rastrear → Completar
-- ✅ **Integración NFC/RFID** - Identificación sin fricción de operadores
-- ✅ **Rastreo de Ubicación** - Actualizaciones en tiempo real
-- ✅ **Validaciones Robustas** - Integridad de datos en cada paso
+### Ya implementado
 
-Ver la [documentación completa de API](API.md) para detalles de todos los endpoints.
+- [x] PostgreSQL
+- [x] JWT + roles
+- [x] NFC/RFID
+- [x] cycle engine
+- [x] analytics
+- [x] alertas
+- [x] ubicación
+- [x] BM-BUS-001 simulator foundation
+- [x] safety-envelope simulation
+- [x] smoke tests de fail-safe
 
-### 🌟 Para Desarrolladores
+### Siguiente capa
 
-Todos los que contribuyan al proyecto tendrán trabajo automático. El sistema maneja los procesos - tu trabajo es monitorearlo y mejorarlo.
+- [ ] abstracción persistente `Vehicle`
+- [ ] `Mission/Trip` sin romper `Cycle`
+- [ ] WebSockets para gemelo digital
+- [ ] black-box persistente
+- [ ] replay de runs
+- [ ] dashboard de BM-BUS-001
+- [ ] hardware-in-the-loop
+- [ ] staff learning passport
+- [ ] simulación de demanda y unidades modulares
+- [ ] observer/anomaly engine
 
-**Workflow Automatizado:**
-1. `npm run monitor` - Monitoreo automático de procesos
-2. Dashboard muestra estado en tiempo real
-3. Solo necesitas verificar y optimizar
+### Más adelante
 
+- [ ] instrumentación de un bus real
+- [ ] conducción humana + asistencia
+- [ ] bench rig
+- [ ] closed-course remote crawl
+- [ ] evaluación independiente antes de cualquier discusión de vía pública
+
+## 👥 Filosofía de trabajo
+
+La automatización no debe convertir al equipo en espectadores.
+
+La plataforma busca que las personas recorran múltiples áreas:
+
+```text
+servicio → inspección → mantenimiento → telemetría → diagnóstico
+        → simulación → emergencia → mentoría
+```
+
+La experiencia se documenta. Las tareas reguladas siguen requiriendo las certificaciones correspondientes.
+
+## 🚨 Emergencias
+
+La función primaria es transporte.
+
+La red puede diseñarse para **apoyar** evacuaciones, transporte de suministros, energía o comunicaciones cuando exista capacidad y coordinación adecuada.
+
+No sustituye ambulancias, bomberos, policía ni protección civil.
+
+## 🧭 North Star
+
+> Mover personas y carga bien primero. Ganar confianza mediante servicio consistente. Agregar responsabilidad sólo cuando la capacidad esté demostrada.
 
 ## 📄 Licencia
 
-Proyecto open-source con visión comercial
-
----
-
-**Revolucionando la logística latinoamericana, un ciclo a la vez.** 🔥
+MIT / proyecto open-source con visión comercial.
