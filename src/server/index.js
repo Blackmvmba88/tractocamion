@@ -29,6 +29,7 @@ const cycleController = require('../controllers/cycleController');
 const analyticsController = require('../controllers/analyticsController');
 const nfcController = require('../controllers/nfcController');
 const userController = require('../controllers/userController');
+const truckPositionController = require('../controllers/truckPositionController');
 
 assertValidEnvironment();
 
@@ -73,11 +74,13 @@ app.disable('x-powered-by');
 app.set('etag', 'strong');
 
 app.use(helmet({
+  referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
   contentSecurityPolicy: {
     directives: {
       ...helmet.contentSecurityPolicy.getDefaultDirectives(),
       'script-src': ["'self'"],
-      'style-src': ["'self'", "'unsafe-inline'"]
+      'style-src': ["'self'", "'unsafe-inline'"],
+      'img-src': ["'self'", 'data:', 'https://tile.openstreetmap.org']
     }
   }
 }));
@@ -218,7 +221,7 @@ apiRouter.get('/processes', authenticateToken, requireRole('admin', 'gerente'), 
 apiRouter.get('/trucks', authenticateToken, requireRole('admin', 'gerente'), async (req, res) => {
   try {
     const trucks = await Truck.findAll({
-      attributes: ['id', 'plate', 'status', 'location', 'cycle_start_time'],
+      attributes: ['id', 'plate', 'status', 'location', 'cycle_start_time', 'latitude', 'longitude', 'position_updated_at', 'position_source'],
       include: [{
         model: Operator,
         as: 'operator',
@@ -231,6 +234,10 @@ apiRouter.get('/trucks', authenticateToken, requireRole('admin', 'gerente'), asy
       plate: truck.plate,
       status: truck.status,
       location: truck.location,
+      latitude: truck.latitude,
+      longitude: truck.longitude,
+      position_updated_at: truck.position_updated_at,
+      position_source: truck.position_source,
       operator: truck.operator ? truck.operator.name : null,
       cycle_time: truck.cycle_start_time ? calculateCycleTime(truck.cycle_start_time) : null
     }));
@@ -250,6 +257,8 @@ apiRouter.get('/trucks', authenticateToken, requireRole('admin', 'gerente'), asy
 });
 
 // Operators endpoint
+apiRouter.patch('/trucks/:id/position', authenticateToken, requireRole('admin', 'gerente'), truckPositionController.updatePosition);
+
 apiRouter.get('/operators', authenticateToken, requireRole('admin', 'gerente'), async (req, res) => {
   try {
     const operators = await Operator.findAll({
