@@ -18,6 +18,8 @@ const {
   loginValidation,
   changePasswordValidation,
   refreshTokenValidation,
+  adminCreateUserValidation,
+  adminUpdateUserValidation,
   handleValidationErrors
 } = require('../middleware/validation');
 

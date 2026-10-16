@@ -177,6 +177,29 @@ Dashboard local:
 http://localhost:3000
 ```
 
+### Entorno local preparado en macOS
+
+En este checkout, PostgreSQL 16 guarda sus datos en `.local/postgres` y escucha
+únicamente en `127.0.0.1:55432`. El archivo `.env` contiene secretos locales
+generados y queda excluido de Git, al igual que los datos. Para reiniciar:
+
+```bash
+# Sólo si PostgreSQL está detenido:
+/opt/homebrew/opt/postgresql@16/bin/pg_ctl -D .local/postgres -l .local/postgres.log -o '-h 127.0.0.1 -p 55432' start
+npm run preflight
+npm start
+```
+
+Este clúster usa autenticación local de confianza para demostración; no se debe
+exponer a la red. Para detenerlo:
+
+```bash
+/opt/homebrew/opt/postgresql@16/bin/pg_ctl -D .local/postgres stop
+```
+
+Validación: `npm test`, `npm run check`, `npm run test:bus` y, con el servidor
+encendido y los datos demo, `npm run test:integration`.
+
 ### Datos demo
 
 - Admin: `admin` / `Admin123!`

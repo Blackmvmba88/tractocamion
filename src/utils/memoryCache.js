@@ -1,6 +1,7 @@
 'use strict';
 
 const cache = new Map();
+const pending = new Map();
 
 function get(key) {
   const entry = cache.get(key);
@@ -33,11 +34,23 @@ async function wrap(key, ttlMs, factory) {
     return cachedValue;
   }
 
-  const value = await factory();
-  return set(key, value, ttlMs);
+  if (pending.has(key)) return pending.get(key);
+
+  const request = Promise.resolve().then(factory).then((value) => {
+    // A mutation may invalidate this key while its query is still running.
+    if (pending.get(key) === request) set(key, value, ttlMs);
+    return value;
+  }).finally(() => {
+    if (pending.get(key) === request) pending.delete(key);
+  });
+  pending.set(key, request);
+  return request;
 }
 
 function invalidate(prefix) {
+  for (const key of pending.keys()) {
+    if (key.startsWith(prefix)) pending.delete(key);
+  }
   for (const key of cache.keys()) {
     if (key.startsWith(prefix)) {
       cache.delete(key);
