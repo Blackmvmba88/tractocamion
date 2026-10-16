@@ -28,12 +28,12 @@ function validateCommand(state, command, config = {}) {
     return { accepted: false, reason: 'link_unhealthy' };
   }
 
-  if (!Number.isFinite(command.timestampMs) || now - command.timestampMs > limits.maxCommandAgeMs) {
+  if (!Number.isFinite(command.timestampMs) || command.timestampMs > now || now - command.timestampMs > limits.maxCommandAgeMs) {
     return { accepted: false, reason: 'stale_command' };
   }
 
-  const targetSpeedKmh = Number(command.targetSpeedKmh);
-  if (!Number.isFinite(targetSpeedKmh) || targetSpeedKmh < 0) {
+  const targetSpeedKmh = command.targetSpeedKmh;
+  if (typeof targetSpeedKmh !== 'number' || !Number.isFinite(targetSpeedKmh) || targetSpeedKmh < 0) {
     return { accepted: false, reason: 'invalid_speed' };
   }
 

@@ -9,10 +9,16 @@ const { validateCommand } = require('./safetyEnvelope');
 class BusSimulator {
   constructor(config = {}) {
     this.config = {
-      maxSpeedKmh: config.maxSpeedKmh || 10,
-      accelerationKmhPerStep: config.accelerationKmhPerStep || 1,
-      brakingKmhPerStep: config.brakingKmhPerStep || 2,
+      maxSpeedKmh: config.maxSpeedKmh ?? 10,
+      accelerationKmhPerStep: config.accelerationKmhPerStep ?? 1,
+      brakingKmhPerStep: config.brakingKmhPerStep ?? 2,
     };
+
+    if (!Number.isFinite(this.config.maxSpeedKmh) || this.config.maxSpeedKmh <= 0 ||
+        !Number.isFinite(this.config.accelerationKmhPerStep) || this.config.accelerationKmhPerStep <= 0 ||
+        !Number.isFinite(this.config.brakingKmhPerStep) || this.config.brakingKmhPerStep <= 0) {
+      throw new RangeError('Simulator parameters must be finite positive numbers');
+    }
 
     this.state = {
       vehicleId: config.vehicleId || 'BM-BUS-001',
@@ -80,7 +86,9 @@ class BusSimulator {
 
   step() {
     if (this.state.estop) {
-      this.state.speedKmh = 0;
+      // Kinematic simplification only: E-STOP is not instantaneous physical braking.
+      this.state.targetSpeedKmh = 0;
+      this.state.speedKmh = Math.max(0, this.state.speedKmh - this.config.brakingKmhPerStep);
       return this.snapshot();
     }
 
