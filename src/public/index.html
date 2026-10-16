@@ -6,6 +6,8 @@
     <title>🚛 Tractocamión 4.0 - Dashboard</title>
     <link rel="stylesheet" href="/styles.css">
     <link rel="stylesheet" href="/themes.css">
+    <link rel="stylesheet" href="/vendor/leaflet/leaflet.css">
+    <link rel="stylesheet" href="/fleet-map.css?v=4.1.0">
 </head>
 <body>
     <div class="container">
@@ -77,6 +79,31 @@
                 <div class="stat-trend" id="trucks-trend">Disponibilidad de flota</div>
             </div>
         </div>
+
+        <section class="section fleet-section" id="fleet-section" aria-labelledby="fleet-title">
+            <div class="section-heading">
+                <div><p class="fleet-eyebrow">VISTA TERRITORIAL</p><h2 id="fleet-title">Unidades en el mapa</h2></div>
+                <span id="fleet-count" class="section-status loading">Cargando unidades...</span>
+            </div>
+            <div class="fleet-toolbar">
+                <label>Buscar unidad<input id="fleet-search" type="search" placeholder="ID, placa u operador"></label>
+                <label>Estado<select id="fleet-filter"><option value="all">Todos los estados</option><option value="active">En servicio</option><option value="resting">En descanso</option><option value="maintenance">Mantenimiento</option></select></label>
+                <label>Posiciones<select id="fleet-mode"><option value="actual">Registradas</option><option value="demo">Demostración</option></select></label>
+                <button type="button" id="fleet-fit">Ver todas</button>
+            </div>
+            <p id="fleet-notice" class="fleet-notice" role="status">Esperando posiciones...</p>
+            <div class="fleet-layout">
+                <div class="fleet-map-wrap">
+                    <div id="fleet-map" aria-label="Mapa de ubicación de unidades"></div>
+                    <p id="fleet-tiles-error" class="fleet-tiles-error" hidden>El mapa base no está disponible. Las posiciones y fichas siguen disponibles; revisa tu conexión.</p>
+                </div>
+                <aside class="fleet-sidebar" aria-label="Lista y detalle de unidades">
+                    <div id="fleet-list" class="fleet-list"></div>
+                    <div id="fleet-detail" class="fleet-detail"><p>Selecciona una unidad para ver su ubicación, operador y última posición.</p></div>
+                </aside>
+            </div>
+            <p class="fleet-legend"><span>● En servicio</span><span>● En descanso</span><span>● Mantenimiento</span><span>Sin coordenadas: aparece sólo en la lista.</span></p>
+        </section>
 
         <div class="section" data-section="processes">
             <div class="section-heading">
@@ -151,6 +178,8 @@
 
     <script src="/auth.js"></script>
     <script src="/theme-switcher.js"></script>
-    <script src="/app.js"></script>
+    <script src="/vendor/leaflet/leaflet.js"></script>
+    <script src="/fleet-map.js?v=4.1.0"></script>
+    <script src="/app.js?v=4.1.0"></script>
 </body>
 </html>

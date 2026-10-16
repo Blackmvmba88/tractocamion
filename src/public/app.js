@@ -334,6 +334,7 @@ async function updateTrucks() {
             if (response.status === 401 || response.status === 403) {
                 showTableMessage('trucks-table', 6, '🔐 Inicia sesión para ver los tractores.');
                 setSectionStatus('trucks', 'error', 'Acceso restringido');
+                window.fleetMap?.restrict();
                 return { restricted: true };
             }
             throw new Error(`Trucks request failed with status ${response.status}`);
@@ -341,6 +342,7 @@ async function updateTrucks() {
 
         const data = await response.json();
         const trucks = Array.isArray(data.trucks) ? data.trucks : [];
+        window.fleetMap?.update(trucks);
         const active = Number.isFinite(Number(data.active)) ? Number(data.active) : trucks.filter((truck) => normalizeStatus(truck.status) === 'active').length;
         setText('active-trucks', formatNumber(active));
 
@@ -371,6 +373,7 @@ async function updateTrucks() {
         console.error('Error fetching trucks:', error);
         showTableMessage('trucks-table', 6, 'No fue posible cargar tractores.');
         setSectionStatus('trucks', 'error', 'Con error');
+        window.fleetMap?.fail();
         throw error;
     }
 }

@@ -208,6 +208,34 @@ encendido y los datos demo, `npm run test:integration`.
 
 ⚠️ Son credenciales de demostración. Deben deshabilitarse o rotarse en cualquier despliegue real.
 
+### Mapa de unidades
+
+El dashboard incluye mapa con zoom, búsqueda por ID/placa/operador, filtros de
+estado, selección de unidad y ajuste de la vista a las posiciones visibles.
+Administradores y gerentes pueden ver el mapa y registrar latitud/longitud desde
+la ficha de cada unidad. La posición queda guardada con fecha y origen manual.
+Las posiciones con más de 15 minutos se señalan como antiguas.
+
+La vista inicial **Registradas** sólo representa unidades con coordenadas.
+Las unidades sin coordenadas siguen en la lista. **Demostración** muestra cinco
+posiciones ficticias en el centro de México, identificadas como tales, sin
+guardarlas en la base ni mezclarlas con las registradas. Todavía no existe una
+conexión a rastreadores GPS ni historial de recorridos.
+
+El límite general admite 1000 consultas por IP cada 15 minutos: un panel visible
+realiza unas 720 en ese tiempo. Se configura con `RATE_LIMIT_MAX_REQUESTS` y
+`RATE_LIMIT_WINDOW_MS`; dimensionarlo según los paneles que compartan IP.
+Los intentos fallidos de inicio de sesión conservan su límite independiente.
+
+Antes de iniciar una instalación existente, ejecutar `npm run db:migrate`.
+Leaflet 1.9.4 se sirve localmente desde `src/public/vendor/leaflet`, con su
+licencia. Al actualizar esa dependencia, copiar nuevamente `dist/leaflet.js`,
+`dist/leaflet.css` y `dist/images` a esa carpeta. El mapa base requiere Internet
+y usa los mosaicos de OpenStreetMap, con atribución y caché del navegador;
+no descarga áreas para uso sin conexión. Consultar la
+[política del servicio](https://operations.osmfoundation.org/policies/tiles/)
+antes de un despliegue con tráfico elevado.
+
 ## 📚 Documentación
 
 ### Plataforma

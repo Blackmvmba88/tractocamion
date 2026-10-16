@@ -11,6 +11,7 @@ const serverSource = fs.readFileSync(
 );
 
 const protectedRoutes = [
+  ['/trucks/:id/position', "authenticateToken, requireRole('admin', 'gerente')"],
   ['/processes', "authenticateToken, requireRole('admin', 'gerente')"],
   ['/trucks', "authenticateToken, requireRole('admin', 'gerente')"],
   ['/operators', "authenticateToken, requireRole('admin', 'gerente')"],

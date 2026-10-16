@@ -47,7 +47,8 @@ const loginLimiter = rateLimit({
  */
 const apiLimiter = rateLimit({
   windowMs: parseIntegerEnv(process.env.RATE_LIMIT_WINDOW_MS, 15 * 60 * 1000), // 15 minutes
-  max: parseIntegerEnv(process.env.RATE_LIMIT_MAX_REQUESTS, 100), // 100 requests
+  // One dashboard makes 4 requests every 5 seconds: 720 per 15 minutes.
+  max: parseIntegerEnv(process.env.RATE_LIMIT_MAX_REQUESTS, 1000),
   handler: buildRateLimitHandler({
     error: 'Demasiadas solicitudes desde esta IP',
     message: 'Por favor espera unos minutos antes de intentar nuevamente'

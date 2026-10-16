@@ -27,6 +27,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.STRING,
       allowNull: true
     },
+    latitude: { type: DataTypes.DOUBLE, allowNull: true, validate: { min: -90, max: 90 } },
+    longitude: { type: DataTypes.DOUBLE, allowNull: true, validate: { min: -180, max: 180 } },
+    position_updated_at: { type: DataTypes.DATE, allowNull: true },
+    position_source: { type: DataTypes.STRING, allowNull: true },
     current_operator_id: {
       type: DataTypes.INTEGER,
       allowNull: true,

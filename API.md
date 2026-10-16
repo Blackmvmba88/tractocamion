@@ -1360,3 +1360,24 @@ These new endpoints provide:
 - **Earnings calculation**: Automatic payment tracking
 - **Data integrity**: Validations and status checks at every step
 
+# Posiciones de unidades
+
+`GET /api/trucks` incluye `latitude`, `longitude`, `position_updated_at` y
+`position_source`, inicialmente nulos. Requiere rol `admin` o `gerente`.
+
+`PATCH /api/trucks/:id/position` requiere JWT y rol `admin` o `gerente`.
+Permite registrar una posición manual (no equivale a una integración GPS):
+
+```json
+{ "latitude": 19.4326, "longitude": -99.1332 }
+```
+
+Ambas coordenadas deben ser números finitos; latitud entre -90 y 90, longitud
+entre -180 y 180. Se admite `location` opcional como texto de 1 a 255 caracteres.
+La respuesta incluye `success: true` y `position` con coordenadas, fecha de
+recepción del servidor y `position_source: "manual"`.
+Errores: 400 por datos inválidos, 401 sin token, 403 sin rol autorizado,
+404 si no existe la unidad, 500 por error de persistencia. No guarda rutas ni
+historial: reemplaza la última posición. Los datos demo del mapa son exclusivos
+del navegador y nunca se envían a este endpoint.
+
