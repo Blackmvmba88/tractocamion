@@ -1381,3 +1381,56 @@ Errores: 400 por datos inválidos, 401 sin token, 403 sin rol autorizado,
 historial: reemplaza la última posición. Los datos demo del mapa son exclusivos
 del navegador y nunca se envían a este endpoint.
 
+
+## GPS del teléfono y rastreadores
+
+Todas las respuestas API llevan `Cache-Control: no-store`.
+
+- `GET /api/gps/units`: JWT; admin/gerente ve unidades disponibles, operador sólo
+  las que tengan `current_operator_id` igual a su operador vinculado.
+- `POST /api/gps/units/:id/positions`: JWT; los mismos roles. El operador sólo
+  puede enviar para su asignación actual (se comprueba de nuevo al escribir).
+- `GET /api/gps/devices`: JWT admin/gerente; lista nombre, unidad, fechas e ID.
+  No devuelve credenciales ni sus huellas.
+- `POST /api/gps/devices`: JWT admin/gerente; `{ "truck_id": "TRK-001", "name":
+  "ESP32 unidad 1" }`. Responde 201 con `device` y `token` una sola vez.
+- `DELETE /api/gps/devices/:id`: JWT admin/gerente; revoca la credencial, conserva
+  el registro y la última posición.
+- `POST /api/gps/ingest`: `Authorization: Bearer <credencial-del-rastreador>`.
+  La credencial determina la unidad; no se acepta elegir otra desde el cuerpo.
+
+Cuerpo de posición, tanto para teléfono como para rastreador:
+
+```json
+{
+  "latitude": 19.4326,
+  "longitude": -99.1332,
+  "accuracy": 8,
+  "speed": 0,
+  "heading": null,
+  "observed_at": "2026-10-16T12:00:00.000Z"
+}
+```
+
+La fecha del ejemplo debe sustituirse por la fecha UTC real de la lectura.
+`accuracy`: metros, de 0 a 100000; obligatorio en teléfono, admite null en equipo
+que no reporte precisión. `speed`: m/s (0 a 150) o null. `heading`: grados
+(0 incluido, 360 excluido) o null. Latitud/longitud son números finitos en sus
+rangos geográficos. Se rechazan lecturas de más de 120 segundos o con más de
+30 segundos de adelanto. La actualización es atómica: una lectura anterior o
+igual a la guardada recibe 409; no desplaza la posición más reciente aunque
+lleguen al mismo tiempo varias fuentes.
+
+El origen lo fija el servidor: `phone_gps` o `tracker_gps`; `position_updated_at`
+es la fecha observada y `position_received_at` la recepción. `GET /api/trucks`
+incluye `position_accuracy`, `position_speed` y `position_heading`.
+Errores: 400 por lectura inválida, 401 por credencial ausente/revocada, 403 por
+rol/asignación, 409 por lectura antigua/duplicada. Una credencial de rastreador
+no autoriza leer flota ni administrar cuentas.
+
+HTTPS es obligatorio fuera del entorno local. No enviar claves en URL ni
+publicar `firmware/esp32-gps/include/tracker_config.h`. La aplicación guarda SHA-256 de
+claves aleatorias de 256 bits. El límite general de API se comparte por IP;
+dimensionar `RATE_LIMIT_MAX_REQUESTS` cuando varios rastreadores comparten red.
+Esta recepción es HTTP JSON; no implementa protocolos TCP/UDP propietarios,
+control de actuadores ni ingestión de otros sensores todavía.

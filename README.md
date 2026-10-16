@@ -214,13 +214,29 @@ El dashboard incluye mapa con zoom, búsqueda por ID/placa/operador, filtros de
 estado, selección de unidad y ajuste de la vista a las posiciones visibles.
 Administradores y gerentes pueden ver el mapa y registrar latitud/longitud desde
 la ficha de cada unidad. La posición queda guardada con fecha y origen manual.
-Las posiciones con más de 15 minutos se señalan como antiguas.
+Las posiciones manuales con más de 15 minutos y GPS con más de 1 minuto se señalan como antiguas.
 
 La vista inicial **Registradas** sólo representa unidades con coordenadas.
 Las unidades sin coordenadas siguen en la lista. **Demostración** muestra cinco
 posiciones ficticias en el centro de México, identificadas como tales, sin
-guardarlas en la base ni mezclarlas con las registradas. Todavía no existe una
-conexión a rastreadores GPS ni historial de recorridos.
+guardarlas en la base ni mezclarlas con las registradas. El botón **GPS y rastreadores** abre `/gps.html`: permite transmitir desde el
+teléfono y crear/revocar credenciales para equipos que envíen HTTP JSON. El
+operador sólo puede transmitir para sus unidades asignadas; administradores y
+gerentes gestionan los equipos. Se distingue captura manual, GPS del teléfono
+y rastreador. Se conservan precisión, velocidad y fecha cuando están disponibles.
+No se guarda historial de recorridos todavía.
+
+El GPS del navegador requiere permiso y contexto seguro (HTTPS para acceder
+desde un teléfono externo); localhost se limita al mismo dispositivo. Mantener
+la página abierta: el navegador puede suspenderla en segundo plano. No se
+solicita ubicación automáticamente. Al detener, cerrar o abandonar la página se
+cancela la captura. El servidor rechaza datos de más de 2 minutos, del futuro
+o anteriores a la última posición guardada.
+
+Incluye [prototipo de rastreador propio ESP32 + GNSS](firmware/esp32-gps/README.md).
+La versión inicial usa Wi-Fi y HTTPS. El montaje físico, alimentación automotriz,
+módem celular y sensores de combustible/temperatura son etapas posteriores;
+no hay lecturas de sensores simuladas en la vista registrada.
 
 El límite general admite 1000 consultas por IP cada 15 minutos: un panel visible
 realiza unas 720 en ese tiempo. Se configura con `RATE_LIMIT_MAX_REQUESTS` y

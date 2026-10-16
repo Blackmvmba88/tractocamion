@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GPS de unidades · Tractocamión</title><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/gps.css?v=1"></head>
+<body><main class="container gps-page"><header><h1>GPS de unidades</h1><p>Ubicación del teléfono y conexión de rastreadores propios.</p><a href="/">← Volver al mapa</a></header>
+<section class="section"><h2>Transmitir desde este dispositivo</h2><p>Usa esta función dentro de la unidad: enviará la ubicación de este teléfono o computadora a la unidad seleccionada. El navegador debe permitir el acceso a la ubicación.</p>
+<label for="gps-unit">Unidad</label><select id="gps-unit"><option value="">Cargando unidades...</option></select>
+<div class="gps-actions"><button id="gps-start" disabled>Iniciar GPS</button><button id="gps-stop" disabled>Detener</button></div>
+<p id="gps-status" role="status">GPS detenido. No se está compartiendo tu ubicación.</p><dl id="gps-fix"></dl>
+<p class="gps-note">Mantén esta página abierta y el teléfono encendido. El seguimiento puede pausarse al bloquearlo o pasar al segundo plano. Desde otro teléfono se necesita una dirección HTTPS; localhost sólo funciona en el dispositivo que ejecuta el servidor.</p></section>
+<section id="gps-management" class="section" hidden><h2>Rastreadores de las unidades</h2><p>Crea una credencial por rastreador. Se guarda únicamente su huella; la clave completa se muestra una sola vez.</p>
+<form id="gps-device-form"><label>Unidad<select id="gps-device-unit" required></select></label><label>Nombre del rastreador<input id="gps-device-name" maxlength="100" placeholder="Ej. Prototipo ESP32 · Unidad 01" required></label><button>Crear credencial</button></form>
+<div id="gps-secret" hidden><p>Guarda esta clave en la configuración privada del rastreador. No la compartas ni la publiques.</p><textarea id="gps-token" readonly aria-label="Clave del rastreador"></textarea><button id="gps-hide-token">Ocultar clave</button></div>
+<p id="gps-device-status" role="status"></p><div id="gps-devices"></div>
+<p class="gps-note">Recepción HTTP JSON: <code>POST /api/gps/ingest</code>. Usa HTTPS fuera de localhost. Los rastreadores con protocolos propios necesitarán un adaptador. El firmware inicial ESP32 usa Wi-Fi; la conectividad celular es una ampliación posterior.</p></section>
+</main><script src="/auth.js"></script><script src="/gps.js?v=2"></script></body></html>

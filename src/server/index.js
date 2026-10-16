@@ -30,6 +30,7 @@ const analyticsController = require('../controllers/analyticsController');
 const nfcController = require('../controllers/nfcController');
 const userController = require('../controllers/userController');
 const truckPositionController = require('../controllers/truckPositionController');
+const gpsController = require('../controllers/gpsController');
 
 assertValidEnvironment();
 
@@ -85,6 +86,7 @@ app.use(helmet({
   }
 }));
 app.use(cors(corsOptions));
+app.use((req, res, next) => { res.set('Permissions-Policy', 'geolocation=(self)'); next(); });
 app.use(express.json({ limit: jsonLimit }));
 app.use(express.urlencoded({
   extended: true,
@@ -111,6 +113,14 @@ app.use(express.static(publicDir, {
 
 const apiRouter = express.Router();
 apiRouter.use(apiLimiter);
+apiRouter.use((req, res, next) => { res.set('Cache-Control', 'no-store'); next(); });
+
+apiRouter.get('/gps/units', authenticateToken, requireRole('admin', 'gerente', 'operador'), gpsController.units);
+apiRouter.post('/gps/units/:id/positions', authenticateToken, requireRole('admin', 'gerente', 'operador'), gpsController.phone);
+apiRouter.get('/gps/devices', authenticateToken, requireRole('admin', 'gerente'), gpsController.devices);
+apiRouter.post('/gps/devices', authenticateToken, requireRole('admin', 'gerente'), gpsController.createDevice);
+apiRouter.delete('/gps/devices/:id', authenticateToken, requireRole('admin', 'gerente'), gpsController.revokeDevice);
+apiRouter.post('/gps/ingest', gpsController.tracker);
 
 // Public health endpoints
 apiRouter.get('/health', (req, res) => {
@@ -221,7 +231,7 @@ apiRouter.get('/processes', authenticateToken, requireRole('admin', 'gerente'), 
 apiRouter.get('/trucks', authenticateToken, requireRole('admin', 'gerente'), async (req, res) => {
   try {
     const trucks = await Truck.findAll({
-      attributes: ['id', 'plate', 'status', 'location', 'cycle_start_time', 'latitude', 'longitude', 'position_updated_at', 'position_source'],
+      attributes: ['id', 'plate', 'status', 'location', 'cycle_start_time', 'latitude', 'longitude', 'position_updated_at', 'position_source', 'position_received_at', 'position_accuracy', 'position_speed', 'position_heading'],
       include: [{
         model: Operator,
         as: 'operator',
@@ -238,6 +248,10 @@ apiRouter.get('/trucks', authenticateToken, requireRole('admin', 'gerente'), asy
       longitude: truck.longitude,
       position_updated_at: truck.position_updated_at,
       position_source: truck.position_source,
+      position_received_at: truck.position_received_at,
+      position_accuracy: truck.position_accuracy,
+      position_speed: truck.position_speed,
+      position_heading: truck.position_heading,
       operator: truck.operator ? truck.operator.name : null,
       cycle_time: truck.cycle_start_time ? calculateCycleTime(truck.cycle_start_time) : null
     }));

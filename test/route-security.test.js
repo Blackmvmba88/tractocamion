@@ -11,6 +11,10 @@ const serverSource = fs.readFileSync(
 );
 
 const protectedRoutes = [
+  ['/gps/units', "authenticateToken, requireRole('admin', 'gerente', 'operador')"],
+  ['/gps/units/:id/positions', "authenticateToken, requireRole('admin', 'gerente', 'operador')"],
+  ['/gps/devices', "authenticateToken, requireRole('admin', 'gerente')"],
+  ['/gps/devices/:id', "authenticateToken, requireRole('admin', 'gerente')"],
   ['/trucks/:id/position', "authenticateToken, requireRole('admin', 'gerente')"],
   ['/processes', "authenticateToken, requireRole('admin', 'gerente')"],
   ['/trucks', "authenticateToken, requireRole('admin', 'gerente')"],

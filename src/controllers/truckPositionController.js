@@ -12,7 +12,7 @@ exports.updatePosition = async (req, res) => {
 
   try {
     // Record reception time; source is manual until a tracker integration exists.
-    const values = { latitude, longitude, position_updated_at: new Date(), position_source: 'manual' };
+    const values = { latitude, longitude, position_updated_at: new Date(), position_source: 'manual', position_received_at: new Date(), position_accuracy: null, position_speed: null, position_heading: null };
     if (location !== undefined) values.location = location.trim();
     const [count] = await Truck.update(values, { where: { id: req.params.id } });
     if (!count) return res.status(404).json({ error: 'Unidad no encontrada' });

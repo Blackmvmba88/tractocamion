@@ -20,7 +20,7 @@ window.fleetMap = (() => {
         if (isDemo()) return demo[unit.id] || null;
         return valid(unit.latitude, unit.longitude) ? [unit.latitude, unit.longitude] : null;
     }
-    const stale = unit => !unit.position_updated_at || Date.now() - new Date(unit.position_updated_at).getTime() > 15 * 60 * 1000;
+    const stale = unit => !unit.position_updated_at || Date.now() - new Date(unit.position_updated_at).getTime() > (unit.position_source?.endsWith('_gps') ? 60000 : 15 * 60 * 1000);
     function visible() {
         const term = el('fleet-search').value.trim().toLocaleLowerCase();
         const status = el('fleet-filter').value;
@@ -43,9 +43,10 @@ window.fleetMap = (() => {
             <p><strong>Operador:</strong> ${escape(unit.operator || 'Sin asignar')}</p>
             <p><strong>Lugar registrado:</strong> ${escape(unit.location || 'Sin nombre')}</p>
             <p><strong>Coordenadas:</strong> ${point ? point.map(v => v.toFixed(5)).join(', ') : 'Sin posición registrada'}</p>
-            <p><strong>Origen:</strong> ${isDemo() ? 'Demostración ficticia' : unit.position_source === 'manual' ? 'Captura manual' : 'Sin conexión a rastreador'}</p>
+            <p><strong>Origen:</strong> ${isDemo() ? 'Demostración ficticia' : ({manual:'Captura manual',phone_gps:'GPS del teléfono',tracker_gps:'Rastreador GPS'})[unit.position_source] || 'Sin conexión a rastreador'}</p>
+            ${!isDemo() && unit.position_source?.endsWith('_gps') ? `<p><strong>Precisión:</strong> ${unit.position_accuracy == null ? 'No reportada' : `± ${Math.round(unit.position_accuracy)} m`}</p><p><strong>Velocidad:</strong> ${unit.position_speed == null ? 'No reportada' : `${(unit.position_speed * 3.6).toFixed(1)} km/h`}</p>` : ''}
             <p><strong>Última posición:</strong> ${isDemo() ? 'No aplica: demostración' : escape(time)}</p>
-            ${!isDemo() && point && stale(unit) ? '<p>⚠ Posición con más de 15 minutos o sin fecha. No confirma la ubicación actual.</p>' : ''}
+            ${!isDemo() && point && stale(unit) ? '<p>⚠ Posición antigua o sin fecha (GPS: más de 1 minuto; manual: más de 15 minutos). No confirma la ubicación actual.</p>' : ''}
             ${!isDemo() ? `<details><summary>Registrar posición manual</summary>
                 <form id="fleet-position-form">
                     <label>Latitud<input name="latitude" type="number" min="-90" max="90" step="any" required value="${unit.latitude ?? ''}"></label>
@@ -88,7 +89,7 @@ window.fleetMap = (() => {
             nextIds.add(unit.id);
             const icon = L.divIcon({ className: 'fleet-marker', html: `<span class="fleet-dot ${escape(unit.status)} ${!isDemo() && stale(unit) ? 'is-stale' : ''}">🚛</span>`, iconSize: [32, 32], iconAnchor: [16, 16] });
             let marker = markers.get(unit.id);
-            const popup = `<strong>${escape(unit.id)} · ${escape(unit.plate)}</strong><br>${escape(labels[unit.status])}<br>${isDemo() ? 'Posición ficticia · Demo' : 'Posición registrada'}<br>${escape(unit.operator || 'Sin operador')}`;
+            const popup = `<strong>${escape(unit.id)} · ${escape(unit.plate)}</strong><br>${escape(labels[unit.status])}<br>${isDemo() ? 'Posición ficticia · Demo' : ({manual:'Captura manual',phone_gps:'GPS del teléfono',tracker_gps:'Rastreador GPS'})[unit.position_source] || 'Posición registrada'}<br>${escape(unit.operator || 'Sin operador')}`;
             if (!marker) {
                 marker = L.marker(point, { icon, title: `${unit.id} ${unit.plate}`, alt: `Unidad ${unit.id}` }).addTo(layer).bindPopup(popup);
                 marker.on('click', () => select(unit.id, false));
@@ -101,7 +102,7 @@ window.fleetMap = (() => {
         el('fleet-notice').className = `fleet-notice${isDemo() ? ' is-demo' : ''}`;
         el('fleet-notice').textContent = isDemo()
             ? 'DEMOSTRACIÓN · Posiciones ficticias en el centro de México. No representan la ubicación de estas unidades.'
-            : `${nextIds.size} unidades con coordenadas; ${filtered.length - nextIds.size} sin posición. Las capturas manuales no son seguimiento GPS en vivo. Actualización cada 5 s con la pestaña visible.`;
+            : `${nextIds.size} unidades con coordenadas; ${filtered.length - nextIds.size} sin posición. Origen y hora de cada lectura disponibles en la ficha. Actualización cada 5 s con la pestaña visible.`;
         const listHtml = filtered.length ? filtered.map(unit => `<button type="button" class="fleet-unit" data-unit="${escape(unit.id)}" aria-pressed="${unit.id === selected}"><strong>${escape(unit.id)} · ${escape(unit.plate)}</strong><span style="color:${colors[unit.status] || '#65758a'}">${escape(labels[unit.status] || unit.status)}</span><small>${escape(unit.operator || 'Sin operador')} · ${position(unit) ? isDemo() ? 'Demo' : stale(unit) ? 'Posición antigua' : 'Posición registrada' : 'Sin coordenadas'}</small></button>`).join('') : '<p class="fleet-empty">No hay unidades que coincidan con la búsqueda.</p>';
         if (el('fleet-list').innerHTML !== listHtml) {
             el('fleet-list').innerHTML = listHtml;

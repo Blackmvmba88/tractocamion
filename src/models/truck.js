@@ -31,6 +31,10 @@ module.exports = (sequelize, DataTypes) => {
     longitude: { type: DataTypes.DOUBLE, allowNull: true, validate: { min: -180, max: 180 } },
     position_updated_at: { type: DataTypes.DATE, allowNull: true },
     position_source: { type: DataTypes.STRING, allowNull: true },
+    position_received_at: { type: DataTypes.DATE, allowNull: true },
+    position_accuracy: { type: DataTypes.DOUBLE, allowNull: true },
+    position_speed: { type: DataTypes.DOUBLE, allowNull: true },
+    position_heading: { type: DataTypes.DOUBLE, allowNull: true },
     current_operator_id: {
       type: DataTypes.INTEGER,
       allowNull: true,
